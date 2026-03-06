@@ -1,0 +1,32 @@
+# Build artifacts
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE/editor
+.vs/
+.vscode/
+
+# Rider
+.idea/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local tools and secrets
+src/Api/bin/
+src/Api/obj/
+src/Api/dinex.dev.db
+src/Api/dinex.dev.db-shm
+src/Api/dinex.dev.db-wal
+src/Api/appsettings.Development.json
+
