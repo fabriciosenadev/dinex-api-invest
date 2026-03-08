@@ -4,6 +4,7 @@ namespace DinExApi.Infra;
 public sealed class InMemoryDataStore
 {
     private readonly List<InvestmentOperation> _operations = [];
+    private readonly List<LedgerEntry> _ledgerEntries = [];
     private readonly List<User> _users = [];
     private readonly object _lock = new();
 
@@ -20,6 +21,22 @@ public sealed class InMemoryDataStore
         lock (_lock)
         {
             return _operations.ToArray();
+        }
+    }
+
+    public void AddLedgerEntry(LedgerEntry entry)
+    {
+        lock (_lock)
+        {
+            _ledgerEntries.Add(entry);
+        }
+    }
+
+    public IReadOnlyCollection<LedgerEntry> SnapshotLedgerEntries(Guid userId)
+    {
+        lock (_lock)
+        {
+            return _ledgerEntries.Where(x => x.UserId == userId).ToArray();
         }
     }
 

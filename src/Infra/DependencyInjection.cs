@@ -14,6 +14,7 @@ public static class DependencyInjection
             services.AddDbContext<DinExDbContext>(options => options.UseSqlite(sqliteConnection));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IInvestmentOperationRepository, SqliteInvestmentOperationRepository>();
+            services.AddScoped<ILedgerEntryRepository, SqliteLedgerEntryRepository>();
             services.AddScoped<IUserRepository, SqliteUserRepository>();
             services.AddScoped<IUserActivationEmailSender, UserActivationEmailSender>();
             services.AddScoped<IUserPasswordResetEmailSender, UserPasswordResetEmailSender>();
@@ -26,6 +27,7 @@ public static class DependencyInjection
 
         services.AddSingleton<InMemoryDataStore>();
         services.AddScoped<IInvestmentOperationRepository, InMemoryInvestmentOperationRepository>();
+        services.AddScoped<ILedgerEntryRepository, InMemoryLedgerEntryRepository>();
         services.AddScoped<IUserRepository, InMemoryUserRepository>();
         services.AddScoped<IUserActivationEmailSender, UserActivationEmailSender>();
         services.AddScoped<IUserPasswordResetEmailSender, UserPasswordResetEmailSender>();

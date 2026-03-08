@@ -8,6 +8,7 @@ global using System.Threading.Tasks;
 global using DinExApi.Api.Configuration;
 global using DinExApi.Api.Contracts.Common;
 global using DinExApi.Api.Contracts.Movements;
+global using DinExApi.Api.Contracts.Statement;
 global using DinExApi.Api.Contracts.Users;
 global using DinExApi.Core;
 global using DinExApi.Infra;
