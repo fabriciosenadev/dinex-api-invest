@@ -17,6 +17,8 @@ obj/
 
 # Logs
 *.log
+TestResultsCoverage/
+src/Tests/TestResultsCoverage/
 
 # OS files
 .DS_Store
@@ -29,4 +31,3 @@ src/Api/dinex.dev.db
 src/Api/dinex.dev.db-shm
 src/Api/dinex.dev.db-wal
 src/Api/appsettings.Development.json
-
