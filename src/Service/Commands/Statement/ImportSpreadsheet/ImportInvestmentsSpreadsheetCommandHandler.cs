@@ -2,6 +2,7 @@ namespace DinExApi.Service;
 
 public sealed class ImportInvestmentsSpreadsheetCommandHandler(
     IInvestmentSpreadsheetParser parser,
+    IInvestmentMovementClassifier movementClassifier,
     IInvestmentOperationRepository investmentOperationRepository,
     ILedgerEntryRepository ledgerEntryRepository,
     IUnitOfWork unitOfWork) : ICommandHandler<ImportInvestmentsSpreadsheetCommand, OperationResult<ImportInvestmentsSpreadsheetResult>>
@@ -50,7 +51,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
                          .ThenBy(x => x.FileName, StringComparer.OrdinalIgnoreCase)
                          .ThenBy(x => x.RowNumber))
             {
-                var parseOutcome = TryBuildEntries(command.UserId, row);
+                var parseOutcome = TryBuildEntries(command.UserId, row, movementClassifier);
                 if (!parseOutcome.Success || parseOutcome.StatementEntry is null)
                 {
                     skippedRows += 1;
@@ -107,22 +108,22 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
         }
     }
 
-    private static ImportParseOutcome TryBuildEntries(Guid userId, ImportedSpreadsheetRow row)
+    private static ImportParseOutcome TryBuildEntries(
+        Guid userId,
+        ImportedSpreadsheetRow row,
+        IInvestmentMovementClassifier movementClassifier)
     {
         var normalizedDescription = row.EventDescription.Trim();
         var normalizedDetail = row.MovementDetail?.Trim();
-        var normalizedDirection = row.Direction?.Trim();
-        var positionAssetSymbol = NormalizeAssetForPosition(
-            row.AssetSymbol,
-            normalizedDescription,
-            normalizedDetail);
+        var movementClassification = movementClassifier.Classify(row);
+        var positionAssetSymbol = movementClassification.NormalizedAssetSymbol;
         var referenceId = $"{row.FileName}:{row.RowNumber}";
         var currency = string.IsNullOrWhiteSpace(row.Currency) ? "BRL" : row.Currency.Trim().ToUpperInvariant();
         var rawAmount = row.GrossAmount ?? row.NetAmount ?? CalculateAmount(row.Quantity, row.UnitPriceAmount);
         var grossAmount = Math.Abs(rawAmount);
         var netAmount = Math.Abs(row.NetAmount ?? row.GrossAmount ?? rawAmount);
 
-        if (TryMapMovementType(normalizedDescription, normalizedDetail, normalizedDirection, rawAmount, out var movementType))
+        if (movementClassification.CreatesMovement)
         {
             if (string.IsNullOrWhiteSpace(positionAssetSymbol))
             {
@@ -135,7 +136,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
             }
 
             var unitPriceAmount = row.UnitPriceAmount.HasValue ? Math.Abs(row.UnitPriceAmount.Value) : 0m;
-            if (unitPriceAmount == 0m && movementType == OperationType.Sell)
+            if (unitPriceAmount == 0m && movementClassification.OperationType == OperationType.Sell)
             {
                 // Sell rows like maturity/redeem can come without unit price in B3 exports.
                 unitPriceAmount = 0m;
@@ -144,12 +145,12 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
             var movement = new InvestmentOperation(
                 userId: userId,
                 assetSymbol: positionAssetSymbol,
-                type: movementType,
+                type: movementClassification.OperationType!.Value,
                 quantity: Math.Abs(row.Quantity.Value),
                 unitPrice: new Money(unitPriceAmount, currency),
                 occurredAtUtc: row.OccurredAtUtc);
 
-            var ledgerType = movementType == OperationType.Buy ? LedgerEntryType.Buy : LedgerEntryType.Sell;
+            var ledgerType = movementClassification.OperationType == OperationType.Buy ? LedgerEntryType.Buy : LedgerEntryType.Sell;
             var statement = new LedgerEntry(
                 userId: userId,
                 type: ledgerType,
@@ -178,7 +179,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
             currency: currency,
             occurredAtUtc: row.OccurredAtUtc,
             source: "import-b3",
-            assetSymbol: row.AssetSymbol,
+            assetSymbol: positionAssetSymbol ?? row.AssetSymbol,
             quantity: row.Quantity.HasValue ? Math.Abs(row.Quantity.Value) : null,
             unitPriceAmount: row.UnitPriceAmount.HasValue ? Math.Abs(row.UnitPriceAmount.Value) : null,
             referenceId: referenceId,
@@ -195,100 +196,6 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
         }
 
         return 0m;
-    }
-
-    private static bool TryMapMovementType(
-        string description,
-        string? movementDetail,
-        string? direction,
-        decimal signedAmount,
-        out OperationType movementType)
-    {
-        var normalizedDescription = Normalize(description);
-        var normalizedDetail = Normalize(movementDetail ?? string.Empty);
-        var normalizedDirection = Normalize(direction ?? string.Empty);
-        var composed = $"{normalizedDescription} {normalizedDetail}";
-
-        if (composed.Contains("compra / venda", StringComparison.Ordinal)
-            || composed.Contains("compra/venda", StringComparison.Ordinal))
-        {
-            if (normalizedDirection.Contains("credito", StringComparison.Ordinal)
-                || normalizedDirection.Contains("entrada", StringComparison.Ordinal))
-            {
-                movementType = OperationType.Buy;
-                return true;
-            }
-
-            if (normalizedDirection.Contains("debito", StringComparison.Ordinal)
-                || normalizedDirection.Contains("saida", StringComparison.Ordinal))
-            {
-                movementType = OperationType.Sell;
-                return true;
-            }
-        }
-
-        if (composed.Contains("bonificacao", StringComparison.Ordinal))
-        {
-            movementType = OperationType.Buy;
-            return true;
-        }
-
-        if (composed.Contains("vencimento", StringComparison.Ordinal)
-            || composed.Contains("resgate", StringComparison.Ordinal)
-            || composed.Contains("amortizacao", StringComparison.Ordinal))
-        {
-            movementType = OperationType.Sell;
-            return true;
-        }
-
-        if (composed.Contains("compra", StringComparison.Ordinal)
-            || composed.Contains("subscricao", StringComparison.Ordinal)
-            || composed.Contains("exercicio de compra", StringComparison.Ordinal))
-        {
-            movementType = OperationType.Buy;
-            return true;
-        }
-
-        if (composed.Contains("venda", StringComparison.Ordinal)
-            || composed.Contains("exercicio de venda", StringComparison.Ordinal))
-        {
-            movementType = OperationType.Sell;
-            return true;
-        }
-
-        var hasPositionData = composed.Contains("liquidacao", StringComparison.Ordinal)
-            || composed.Contains("transferencia", StringComparison.Ordinal);
-        if (hasPositionData)
-        {
-            if (normalizedDirection.Contains("entrada", StringComparison.Ordinal)
-                || normalizedDirection.Contains("credito", StringComparison.Ordinal))
-            {
-                movementType = OperationType.Buy;
-                return true;
-            }
-
-            if (normalizedDirection.Contains("saida", StringComparison.Ordinal)
-                || normalizedDirection.Contains("debito", StringComparison.Ordinal))
-            {
-                movementType = OperationType.Sell;
-                return true;
-            }
-
-            if (signedAmount < 0)
-            {
-                movementType = OperationType.Buy;
-                return true;
-            }
-
-            if (signedAmount > 0)
-            {
-                movementType = OperationType.Sell;
-                return true;
-            }
-        }
-
-        movementType = default;
-        return false;
     }
 
     private static LedgerEntryType MapStatementType(string description)
@@ -322,6 +229,8 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
             || normalized.Contains("desdobramento", StringComparison.Ordinal)
             || normalized.Contains("grupamento", StringComparison.Ordinal)
             || normalized.Contains("subscricao", StringComparison.Ordinal)
+            || normalized.Contains("fracao", StringComparison.Ordinal)
+            || normalized.Contains("leilao", StringComparison.Ordinal)
             || normalized.Contains("cisao", StringComparison.Ordinal)
             || normalized.Contains("incorporacao", StringComparison.Ordinal))
         {
@@ -347,39 +256,6 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
             .Replace("õ", "o", StringComparison.Ordinal)
             .Replace("ú", "u", StringComparison.Ordinal)
             .Replace("ç", "c", StringComparison.Ordinal);
-    }
-
-    private static string? NormalizeAssetForPosition(string? assetSymbol, string description, string? movementDetail)
-    {
-        if (string.IsNullOrWhiteSpace(assetSymbol))
-        {
-            return null;
-        }
-
-        var symbol = assetSymbol.Trim().ToUpperInvariant();
-        var text = Normalize($"{description} {movementDetail}");
-
-        var fiiRights = Regex.Match(symbol, @"^([A-Z]{4})12$");
-        if (fiiRights.Success)
-        {
-            return $"{fiiRights.Groups[1].Value}11";
-        }
-
-        var stockTemporary = Regex.Match(symbol, @"^([A-Z]{4})(1|2|9|10)$");
-        if (stockTemporary.Success)
-        {
-            if (text.Contains("bonificacao", StringComparison.Ordinal)
-                || text.Contains("subscricao", StringComparison.Ordinal)
-                || text.Contains("direito", StringComparison.Ordinal)
-                || text.Contains("recibo", StringComparison.Ordinal))
-            {
-                var prefix = stockTemporary.Groups[1].Value;
-                var suffix = stockTemporary.Groups[2].Value;
-                return suffix is "2" or "10" ? $"{prefix}4" : $"{prefix}3";
-            }
-        }
-
-        return symbol;
     }
 
     private sealed record ImportParseOutcome(

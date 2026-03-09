@@ -53,4 +53,65 @@ public sealed class MovementsController(IApplicationDispatcher dispatcher) : Mai
 
         return HandleResult(result);
     }
+
+    [HttpPost("portfolio/reconcile")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(ReconcilePortfolioResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> ReconcilePortfolio(
+        [FromForm] ReconcilePortfolioRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = GetUserId(HttpContext);
+        if (userId == Guid.Empty)
+        {
+            return Unauthorized(new ErrorResponse(["Authenticated user id was not found in the token."]));
+        }
+
+        if (request.File is null || request.File.Length == 0)
+        {
+            return BadRequest(new ErrorResponse(["A position spreadsheet (.xlsx) file is required."]));
+        }
+
+        if (!request.File.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new ErrorResponse([$"File {request.File.FileName} is not a valid .xlsx spreadsheet."]));
+        }
+
+        await using var stream = request.File.OpenReadStream();
+        await using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream, cancellationToken);
+
+        var command = new ReconcilePortfolioCommand(
+            userId,
+            new ReconcilePortfolioSpreadsheetFile(request.File.FileName, memoryStream.ToArray()));
+        var result = await dispatcher.SendAsync<ReconcilePortfolioCommand, OperationResult<ReconcilePortfolioResult>>(
+            command,
+            cancellationToken);
+
+        if (!result.Succeeded || result.Data is null)
+        {
+            return HandleResult(result);
+        }
+
+        var mapped = new OperationResult<ReconcilePortfolioResponse>();
+        mapped.SetData(new ReconcilePortfolioResponse(
+            TotalAssets: result.Data.TotalAssets,
+            MatchedAssets: result.Data.MatchedAssets,
+            DivergentAssets: result.Data.DivergentAssets,
+            Assets: result.Data.Assets
+                .Select(x => new ReconcilePortfolioAssetResponse(
+                    x.AssetSymbol,
+                    x.ExpectedQuantity,
+                    x.CurrentQuantity,
+                    x.Difference,
+                    x.Status,
+                    x.Reason))
+                .ToArray()));
+
+        return HandleResult(mapped);
+    }
 }

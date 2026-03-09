@@ -32,7 +32,7 @@ internal sealed class SqliteInvestmentOperationRepository(IRepository<Investment
         var positions = operations
             .GroupBy(x => x.AssetSymbol)
             .Select(BuildPosition)
-            .Where(x => x.Quantity > 0)
+            .Where(x => x.Quantity > 0 && !AssetSymbolRules.IsSubscriptionRight(x.AssetSymbol))
             .ToArray();
 
         return positions;

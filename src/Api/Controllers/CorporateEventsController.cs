@@ -122,6 +122,25 @@ public sealed class CorporateEventsController(IApplicationDispatcher dispatcher)
         return HandleResult(mapped);
     }
 
+    [HttpDelete("all")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> ClearEvents(CancellationToken cancellationToken)
+    {
+        var userId = GetUserId(HttpContext);
+        if (userId == Guid.Empty)
+        {
+            return Unauthorized(new ErrorResponse(["Authenticated user id was not found in the token."]));
+        }
+
+        var command = new ClearCorporateEventsCommand(userId);
+        var result = await dispatcher.SendAsync<ClearCorporateEventsCommand, OperationResult>(command, cancellationToken);
+        return HandleResult(result);
+    }
+
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyCollection<CorporateEventResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]

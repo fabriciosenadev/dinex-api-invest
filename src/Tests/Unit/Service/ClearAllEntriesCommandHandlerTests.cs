@@ -7,9 +7,8 @@ public sealed class ClearAllEntriesCommandHandlerTests
     {
         var investmentRepository = new FakeInvestmentRepository();
         var ledgerRepository = new FakeLedgerRepository();
-        var corporateEventRepository = new FakeCorporateEventRepository();
         var unitOfWork = new SpyUnitOfWork();
-        var handler = new ClearAllEntriesCommandHandler(investmentRepository, ledgerRepository, corporateEventRepository, unitOfWork);
+        var handler = new ClearAllEntriesCommandHandler(investmentRepository, ledgerRepository, unitOfWork);
         var userId = Guid.NewGuid();
 
         var result = await handler.HandleAsync(new ClearAllEntriesCommand(userId));
@@ -17,7 +16,6 @@ public sealed class ClearAllEntriesCommandHandlerTests
         Assert.True(result.Succeeded);
         Assert.Equal(userId, investmentRepository.LastUserId);
         Assert.Equal(userId, ledgerRepository.LastUserId);
-        Assert.Equal(userId, corporateEventRepository.LastUserId);
         Assert.Equal(1, unitOfWork.SaveChangesCallCount);
     }
 
@@ -59,29 +57,4 @@ public sealed class ClearAllEntriesCommandHandlerTests
             => Task.FromResult<IReadOnlyCollection<LedgerEntry>>([]);
     }
 
-    private sealed class FakeCorporateEventRepository : ICorporateEventRepository
-    {
-        public Guid LastUserId { get; private set; }
-
-        public Task AddAsync(CorporateEvent entry, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task UpdateAsync(CorporateEvent entry, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task<CorporateEvent?> GetByIdAsync(Guid userId, Guid eventId, CancellationToken cancellationToken = default)
-            => Task.FromResult<CorporateEvent?>(null);
-
-        public Task DeleteAsync(Guid userId, Guid eventId, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
-        {
-            LastUserId = userId;
-            return Task.CompletedTask;
-        }
-
-        public Task<IReadOnlyCollection<CorporateEvent>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
-            => Task.FromResult<IReadOnlyCollection<CorporateEvent>>([]);
-    }
 }

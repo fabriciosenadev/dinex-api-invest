@@ -22,7 +22,7 @@ public sealed class InMemoryInvestmentOperationRepository(InMemoryDataStore data
             .OrderBy(x => x.OccurredAtUtc)
             .GroupBy(x => x.AssetSymbol)
             .Select(BuildPosition)
-            .Where(x => x.Quantity > 0)
+            .Where(x => x.Quantity > 0 && !AssetSymbolRules.IsSubscriptionRight(x.AssetSymbol))
             .ToArray();
 
         return Task.FromResult<IReadOnlyCollection<PortfolioPosition>>(positions);

@@ -14,7 +14,12 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
         var unitOfWork = new SpyUnitOfWork();
-        var handler = new ImportInvestmentsSpreadsheetCommandHandler(parser, movementRepository, ledgerRepository, unitOfWork);
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            movementRepository,
+            ledgerRepository,
+            unitOfWork);
 
         var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
             Guid.NewGuid(),
@@ -43,7 +48,12 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
         var unitOfWork = new SpyUnitOfWork();
-        var handler = new ImportInvestmentsSpreadsheetCommandHandler(parser, movementRepository, ledgerRepository, unitOfWork);
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            movementRepository,
+            ledgerRepository,
+            unitOfWork);
 
         var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
             Guid.NewGuid(),
@@ -67,7 +77,12 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
         var unitOfWork = new SpyUnitOfWork();
-        var handler = new ImportInvestmentsSpreadsheetCommandHandler(parser, movementRepository, ledgerRepository, unitOfWork);
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            movementRepository,
+            ledgerRepository,
+            unitOfWork);
 
         var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
             Guid.NewGuid(),
@@ -82,7 +97,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
     }
 
     [Fact]
-    public async Task Should_Normalize_Temporary_Tickers_To_Base_Position_Ticker()
+    public async Task Should_Keep_Imported_Asset_Symbol_Without_Forced_Normalization()
     {
         var parser = new FakeSpreadsheetParser(
         [
@@ -92,15 +107,79 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
         var unitOfWork = new SpyUnitOfWork();
-        var handler = new ImportInvestmentsSpreadsheetCommandHandler(parser, movementRepository, ledgerRepository, unitOfWork);
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            movementRepository,
+            ledgerRepository,
+            unitOfWork);
 
         var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
             Guid.NewGuid(),
             [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1, 2, 3])]));
 
         Assert.True(result.Succeeded);
-        Assert.Equal("AESB3", movementRepository.Items[0].AssetSymbol);
-        Assert.Equal("MXRF11", movementRepository.Items[1].AssetSymbol);
+        Assert.Equal("AESB1", movementRepository.Items[0].AssetSymbol);
+        Assert.Equal("MXRF12", movementRepository.Items[1].AssetSymbol);
+    }
+
+    [Fact]
+    public async Task Should_Not_Create_Position_Movement_For_LeilaoDeFracao_Or_Cisao()
+    {
+        var parser = new FakeSpreadsheetParser(
+        [
+            new ImportedSpreadsheetRow(2, new DateTime(2025, 1, 10), "Leilão de Fração", "Leilão de Fração", "Credito", "ALUP4", 0.8m, null, 20m, 20m, "BRL", "mov.xlsx"),
+            new ImportedSpreadsheetRow(3, new DateTime(2025, 1, 11), "Cisão", "Cisão", "Credito", "ITUB4", 3m, null, null, null, "BRL", "mov.xlsx"),
+            new ImportedSpreadsheetRow(4, new DateTime(2025, 1, 12), "Transferência - Liquidação", "Transferência - Liquidação", "Credito", "ITUB4", 1m, 30m, 30m, 30m, "BRL", "mov.xlsx")
+        ]);
+
+        var movementRepository = new FakeInvestmentOperationRepository();
+        var ledgerRepository = new FakeLedgerRepository();
+        var unitOfWork = new SpyUnitOfWork();
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            movementRepository,
+            ledgerRepository,
+            unitOfWork);
+
+        var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
+            Guid.NewGuid(),
+            [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1, 2, 3])]));
+
+        Assert.True(result.Succeeded);
+        Assert.Single(movementRepository.Items);
+        Assert.Equal("ITUB4", movementRepository.Items[0].AssetSymbol);
+        Assert.Equal(OperationType.Buy, movementRepository.Items[0].Type);
+        Assert.Equal(3, ledgerRepository.Items.Count);
+    }
+
+    [Fact]
+    public async Task Should_Create_Position_Movement_For_Standalone_Transferencia()
+    {
+        var parser = new FakeSpreadsheetParser(
+        [
+            new ImportedSpreadsheetRow(2, new DateTime(2022, 8, 19), "Transferência", "Transferência", "Credito", "GAME11", 1m, null, null, null, "BRL", "mov.xlsx")
+        ]);
+
+        var movementRepository = new FakeInvestmentOperationRepository();
+        var ledgerRepository = new FakeLedgerRepository();
+        var unitOfWork = new SpyUnitOfWork();
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            movementRepository,
+            ledgerRepository,
+            unitOfWork);
+
+        var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
+            Guid.NewGuid(),
+            [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1, 2, 3])]));
+
+        Assert.True(result.Succeeded);
+        Assert.Single(movementRepository.Items);
+        Assert.Equal("GAME11", movementRepository.Items[0].AssetSymbol);
+        Assert.Equal(OperationType.Buy, movementRepository.Items[0].Type);
     }
 
     private sealed class FakeSpreadsheetParser(IReadOnlyCollection<ImportedSpreadsheetRow> rows) : IInvestmentSpreadsheetParser

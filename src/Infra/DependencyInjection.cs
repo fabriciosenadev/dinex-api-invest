@@ -25,6 +25,7 @@ public static class DependencyInjection
             services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<IInvestmentSpreadsheetParser, B3InvestmentSpreadsheetParser>();
+            services.AddScoped<IPortfolioPositionSpreadsheetParser, B3PortfolioPositionSpreadsheetParser>();
             services.AddScoped<IUnitOfWork, EfUnitOfWork>();
             return services;
         }
@@ -42,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IInvestmentSpreadsheetParser, B3InvestmentSpreadsheetParser>();
+        services.AddScoped<IPortfolioPositionSpreadsheetParser, B3PortfolioPositionSpreadsheetParser>();
         services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
         return services;
     }

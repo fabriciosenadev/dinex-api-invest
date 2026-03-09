@@ -6,13 +6,17 @@ public static class DependencyInjection
     public static IServiceCollection AddService(this IServiceCollection services)
     {
         services.AddScoped<IApplicationDispatcher, ApplicationDispatcher>();
+        services.AddScoped<IAssetAliasResolver, JsonAssetAliasResolver>();
+        services.AddScoped<IInvestmentMovementClassifier, B3InvestmentMovementClassifier>();
         services.AddScoped<ICommandHandler<RegisterMovementCommand, OperationResult<Guid>>, RegisterMovementCommandHandler>();
+        services.AddScoped<ICommandHandler<ReconcilePortfolioCommand, OperationResult<ReconcilePortfolioResult>>, ReconcilePortfolioCommandHandler>();
         services.AddScoped<ICommandHandler<RegisterStatementEntryCommand, OperationResult<Guid>>, RegisterStatementEntryCommandHandler>();
         services.AddScoped<ICommandHandler<ClearAllEntriesCommand, OperationResult>, ClearAllEntriesCommandHandler>();
         services.AddScoped<ICommandHandler<ImportInvestmentsSpreadsheetCommand, OperationResult<ImportInvestmentsSpreadsheetResult>>, ImportInvestmentsSpreadsheetCommandHandler>();
         services.AddScoped<ICommandHandler<RegisterCorporateEventCommand, OperationResult<RegisterCorporateEventResult>>, RegisterCorporateEventCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateCorporateEventCommand, OperationResult<RegisterCorporateEventResult>>, UpdateCorporateEventCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteCorporateEventCommand, OperationResult<RegisterCorporateEventResult>>, DeleteCorporateEventCommandHandler>();
+        services.AddScoped<ICommandHandler<ClearCorporateEventsCommand, OperationResult>, ClearCorporateEventsCommandHandler>();
         services.AddScoped<ICommandHandler<AuthenticateUserCommand, OperationResult<AuthenticatedUserResult>>, AuthenticateUserCommandHandler>();
         services.AddScoped<ICommandHandler<RefreshSessionCommand, OperationResult<AuthenticatedUserResult>>, RefreshSessionCommandHandler>();
         services.AddScoped<ICommandHandler<LogoutUserCommand, OperationResult>, LogoutUserCommandHandler>();
