@@ -4,7 +4,8 @@ internal sealed class InvestmentPortfolioRebuilder(
     IInvestmentOperationRepository investmentOperationRepository,
     ILedgerEntryRepository ledgerEntryRepository,
     ICorporateEventRepository corporateEventRepository,
-    ICorporateEventProcessor corporateEventProcessor) : IInvestmentPortfolioRebuilder
+    ICorporateEventProcessor corporateEventProcessor,
+    IUnitOfWork unitOfWork) : IInvestmentPortfolioRebuilder
 {
     public async Task<int> RebuildAsync(Guid userId, CancellationToken cancellationToken = default)
     {
@@ -38,6 +39,8 @@ internal sealed class InvestmentPortfolioRebuilder(
 
             await investmentOperationRepository.AddAsync(operation, cancellationToken);
         }
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var events = await corporateEventRepository.GetByUserIdAsync(userId, cancellationToken);
         var appliedOperations = 0;
