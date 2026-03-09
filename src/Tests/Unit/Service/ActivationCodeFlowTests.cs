@@ -6,7 +6,7 @@ public sealed class ActivationCodeFlowTests
     public async Task Should_Block_Activation_After_Max_Attempts_And_Require_Resend()
     {
         var repository = new FakeUserRepository();
-        var unitOfWork = new InMemoryUnitOfWork();
+        var unitOfWork = new SpyUnitOfWork();
         var registerHandler = new RegisterUserCommandHandler(
             repository,
             new FakeUserPasswordHasher(),

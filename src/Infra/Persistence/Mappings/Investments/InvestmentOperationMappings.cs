@@ -7,6 +7,7 @@ internal static class InvestmentOperationMappings
         return new InvestmentOperationRecord
         {
             Id = entity.Id,
+            UserId = entity.UserId,
             AssetSymbol = entity.AssetSymbol,
             Type = (int)entity.Type,
             Quantity = entity.Quantity,

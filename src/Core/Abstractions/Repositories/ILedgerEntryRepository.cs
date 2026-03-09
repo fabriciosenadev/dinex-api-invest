@@ -3,6 +3,7 @@ namespace DinExApi.Core;
 public interface ILedgerEntryRepository
 {
     Task AddAsync(LedgerEntry entry, CancellationToken cancellationToken = default);
+    Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<LedgerEntry>> GetByUserIdAsync(
         Guid userId,
         DateTime? fromUtc = null,

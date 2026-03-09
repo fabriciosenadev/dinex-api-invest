@@ -9,10 +9,16 @@ public sealed class InMemoryInvestmentOperationRepository(InMemoryDataStore data
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyCollection<PortfolioPosition>> GetPortfolioPositionsAsync(CancellationToken cancellationToken = default)
+    public Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        dataStore.DeleteOperationsByUserId(userId);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyCollection<PortfolioPosition>> GetPortfolioPositionsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var positions = dataStore
-            .Snapshot()
+            .Snapshot(userId)
             .OrderBy(x => x.OccurredAtUtc)
             .GroupBy(x => x.AssetSymbol)
             .Select(BuildPosition)

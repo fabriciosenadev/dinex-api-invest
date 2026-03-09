@@ -8,9 +8,24 @@ internal sealed class SqliteInvestmentOperationRepository(IRepository<Investment
         await repository.AddAsync(operation.ToRecord(), cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<PortfolioPosition>> GetPortfolioPositionsAsync(CancellationToken cancellationToken = default)
+    public async Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var records = await repository.Query(false)
+            .Where(x => x.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        if (records.Count == 0)
+        {
+            return;
+        }
+
+        repository.DeleteRange(records);
+    }
+
+    public async Task<IReadOnlyCollection<PortfolioPosition>> GetPortfolioPositionsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var operations = await repository.Query()
+            .Where(x => x.UserId == userId)
             .OrderBy(x => x.OccurredAtUtc)
             .ToListAsync(cancellationToken);
 

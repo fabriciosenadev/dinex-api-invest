@@ -3,6 +3,7 @@ namespace DinExApi.Infra;
 public sealed class InvestmentOperationRecord
 {
     public Guid Id { get; init; }
+    public Guid UserId { get; init; }
     public string AssetSymbol { get; init; } = string.Empty;
     public int Type { get; init; }
     public decimal Quantity { get; init; }

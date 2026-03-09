@@ -6,7 +6,7 @@ public sealed class RegisterStatementEntryCommandHandlerTests
     public async Task Should_Register_Statement_Entry()
     {
         var repository = new FakeLedgerRepository();
-        var unitOfWork = new InMemoryUnitOfWork();
+        var unitOfWork = new SpyUnitOfWork();
         var handler = new RegisterStatementEntryCommandHandler(repository, unitOfWork);
 
         var result = await handler.HandleAsync(new RegisterStatementEntryCommand(
@@ -31,6 +31,12 @@ public sealed class RegisterStatementEntryCommandHandlerTests
         public Task AddAsync(LedgerEntry entry, CancellationToken cancellationToken = default)
         {
             Entries.Add(entry);
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            Entries.RemoveAll(x => x.UserId == userId);
             return Task.CompletedTask;
         }
 

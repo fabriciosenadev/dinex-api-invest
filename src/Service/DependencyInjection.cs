@@ -8,6 +8,8 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDispatcher, ApplicationDispatcher>();
         services.AddScoped<ICommandHandler<RegisterMovementCommand, OperationResult<Guid>>, RegisterMovementCommandHandler>();
         services.AddScoped<ICommandHandler<RegisterStatementEntryCommand, OperationResult<Guid>>, RegisterStatementEntryCommandHandler>();
+        services.AddScoped<ICommandHandler<ClearAllEntriesCommand, OperationResult>, ClearAllEntriesCommandHandler>();
+        services.AddScoped<ICommandHandler<ImportInvestmentsSpreadsheetCommand, OperationResult<ImportInvestmentsSpreadsheetResult>>, ImportInvestmentsSpreadsheetCommandHandler>();
         services.AddScoped<ICommandHandler<AuthenticateUserCommand, OperationResult<AuthenticatedUserResult>>, AuthenticateUserCommandHandler>();
         services.AddScoped<ICommandHandler<RefreshSessionCommand, OperationResult<AuthenticatedUserResult>>, RefreshSessionCommandHandler>();
         services.AddScoped<ICommandHandler<LogoutUserCommand, OperationResult>, LogoutUserCommandHandler>();

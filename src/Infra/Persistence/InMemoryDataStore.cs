@@ -16,11 +16,19 @@ public sealed class InMemoryDataStore
         }
     }
 
-    public IReadOnlyCollection<InvestmentOperation> Snapshot()
+    public IReadOnlyCollection<InvestmentOperation> Snapshot(Guid userId)
     {
         lock (_lock)
         {
-            return _operations.ToArray();
+            return _operations.Where(x => x.UserId == userId).ToArray();
+        }
+    }
+
+    public void DeleteOperationsByUserId(Guid userId)
+    {
+        lock (_lock)
+        {
+            _operations.RemoveAll(x => x.UserId == userId);
         }
     }
 
@@ -37,6 +45,14 @@ public sealed class InMemoryDataStore
         lock (_lock)
         {
             return _ledgerEntries.Where(x => x.UserId == userId).ToArray();
+        }
+    }
+
+    public void DeleteLedgerEntriesByUserId(Guid userId)
+    {
+        lock (_lock)
+        {
+            _ledgerEntries.RemoveAll(x => x.UserId == userId);
         }
     }
 

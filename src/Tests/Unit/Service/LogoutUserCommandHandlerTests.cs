@@ -6,7 +6,7 @@ public sealed class LogoutUserCommandHandlerTests
     public async Task Should_Revoke_Refresh_Token_On_Logout()
     {
         var repository = new FakeUserRepository();
-        var unitOfWork = new InMemoryUnitOfWork();
+        var unitOfWork = new SpyUnitOfWork();
         var user = User.CreateUser("Fabricio Sena", "fabricio@email.com", "Senha@123", "Senha@123");
         user.Activate();
         user.AssignRefreshToken("hash-token", DateTime.UtcNow.AddHours(1));

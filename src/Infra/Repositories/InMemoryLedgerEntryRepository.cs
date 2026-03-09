@@ -8,6 +8,12 @@ internal sealed class InMemoryLedgerEntryRepository(InMemoryDataStore dataStore)
         return Task.CompletedTask;
     }
 
+    public Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        dataStore.DeleteLedgerEntriesByUserId(userId);
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyCollection<LedgerEntry>> GetByUserIdAsync(
         Guid userId,
         DateTime? fromUtc = null,

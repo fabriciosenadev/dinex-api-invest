@@ -47,11 +47,16 @@ namespace DinExApi.Infra.Persistence.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AssetSymbol");
 
                     b.HasIndex("OccurredAtUtc");
+
+                    b.HasIndex("UserId", "OccurredAtUtc");
 
                     b.ToTable("investment_operations", (string)null);
                 });

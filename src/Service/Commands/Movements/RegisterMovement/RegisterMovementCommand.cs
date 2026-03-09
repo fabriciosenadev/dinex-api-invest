@@ -2,6 +2,7 @@
 namespace DinExApi.Service;
 
 public sealed record RegisterMovementCommand(
+    Guid UserId,
     string AssetSymbol,
     OperationType Type,
     decimal Quantity,

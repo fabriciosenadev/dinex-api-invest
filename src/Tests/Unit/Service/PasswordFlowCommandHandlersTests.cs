@@ -6,7 +6,7 @@ public sealed class PasswordFlowCommandHandlersTests
     public async Task Should_Reset_Password_Using_Valid_Code()
     {
         var repository = new FakeUserRepository();
-        var unitOfWork = new InMemoryUnitOfWork();
+        var unitOfWork = new SpyUnitOfWork();
         var hasher = new FakeUserPasswordHasher();
         var user = User.CreateUser("Fabricio Sena", "fabricio@email.com", "Senha@123", "Senha@123");
         user.Activate();
@@ -35,7 +35,7 @@ public sealed class PasswordFlowCommandHandlersTests
     public async Task Should_Change_Password_When_Current_Password_Is_Valid()
     {
         var repository = new FakeUserRepository();
-        var unitOfWork = new InMemoryUnitOfWork();
+        var unitOfWork = new SpyUnitOfWork();
         var hasher = new FakeUserPasswordHasher();
         var user = User.CreateUser("Fabricio Sena", "fabricio@email.com", "Senha@123", "Senha@123");
         user.Activate();

@@ -2,7 +2,7 @@ namespace DinExApi.Api.Contracts.Statement;
 
 public sealed record RegisterStatementEntryRequest(
     LedgerEntryType Type,
-    string Description,
+    string? Description,
     decimal GrossAmount,
     decimal NetAmount,
     string Currency,

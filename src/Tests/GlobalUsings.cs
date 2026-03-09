@@ -4,6 +4,5 @@ global using System.Linq;
 global using System.Threading;
 global using System.Threading.Tasks;
 global using DinExApi.Core;
-global using DinExApi.Infra;
 global using DinExApi.Service;
 global using Xunit;

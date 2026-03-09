@@ -7,6 +7,20 @@ internal sealed class SqliteLedgerEntryRepository(IRepository<LedgerEntryRecord>
         await repository.AddAsync(entry.ToRecord(), cancellationToken);
     }
 
+    public async Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var records = await repository.Query(false)
+            .Where(x => x.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        if (records.Count == 0)
+        {
+            return;
+        }
+
+        repository.DeleteRange(records);
+    }
+
     public async Task<IReadOnlyCollection<LedgerEntry>> GetByUserIdAsync(
         Guid userId,
         DateTime? fromUtc = null,

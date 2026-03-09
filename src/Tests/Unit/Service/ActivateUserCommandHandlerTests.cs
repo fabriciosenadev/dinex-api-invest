@@ -6,7 +6,7 @@ public sealed class ActivateUserCommandHandlerTests
     public async Task Should_Activate_User_And_Clear_Activation_Code()
     {
         var repository = new FakeUserRepository();
-        var unitOfWork = new InMemoryUnitOfWork();
+        var unitOfWork = new SpyUnitOfWork();
         var registerHandler = new RegisterUserCommandHandler(
             repository,
             new FakeUserPasswordHasher(),

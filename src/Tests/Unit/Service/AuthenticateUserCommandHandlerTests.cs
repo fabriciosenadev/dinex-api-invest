@@ -6,7 +6,7 @@ public sealed class AuthenticateUserCommandHandlerTests
     public async Task Should_Lock_Login_After_Max_Failed_Attempts()
     {
         var repository = new FakeUserRepository();
-        var unitOfWork = new InMemoryUnitOfWork();
+        var unitOfWork = new SpyUnitOfWork();
         var hasher = new FakeUserPasswordHasher();
         var user = User.CreateUser("Fabricio Sena", "fabricio@email.com", "Senha@123", "Senha@123");
         user.Activate();

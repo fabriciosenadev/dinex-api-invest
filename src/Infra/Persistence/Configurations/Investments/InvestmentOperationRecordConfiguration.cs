@@ -12,6 +12,7 @@ internal sealed class InvestmentOperationRecordConfiguration : IEntityTypeConfig
         builder.Property(x => x.Quantity).HasPrecision(18, 6);
         builder.Property(x => x.UnitPriceAmount).HasPrecision(18, 6);
 
+        builder.HasIndex(x => new { x.UserId, x.OccurredAtUtc });
         builder.HasIndex(x => x.AssetSymbol);
         builder.HasIndex(x => x.OccurredAtUtc);
     }

@@ -21,6 +21,7 @@ public static class DependencyInjection
             services.AddScoped<IUserPasswordHasher, Argon2IdUserPasswordHasher>();
             services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            services.AddScoped<IInvestmentSpreadsheetParser, B3InvestmentSpreadsheetParser>();
             services.AddScoped<IUnitOfWork, EfUnitOfWork>();
             return services;
         }
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<IUserPasswordHasher, Argon2IdUserPasswordHasher>();
         services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddScoped<IInvestmentSpreadsheetParser, B3InvestmentSpreadsheetParser>();
         services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
         return services;
     }

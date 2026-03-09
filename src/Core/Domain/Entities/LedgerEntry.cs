@@ -19,7 +19,7 @@ public sealed class LedgerEntry : Entity
     public LedgerEntry(
         Guid userId,
         LedgerEntryType type,
-        string description,
+        string? description,
         decimal grossAmount,
         decimal netAmount,
         string currency,
@@ -36,7 +36,6 @@ public sealed class LedgerEntry : Entity
         Id = id ?? Guid.NewGuid();
         UserId = userId;
         Type = type;
-        Description = description.Trim();
         AssetSymbol = string.IsNullOrWhiteSpace(assetSymbol) ? null : assetSymbol.Trim().ToUpperInvariant();
         Quantity = quantity;
         UnitPriceAmount = unitPriceAmount;
@@ -47,6 +46,7 @@ public sealed class LedgerEntry : Entity
         Source = source.Trim().ToLowerInvariant();
         ReferenceId = string.IsNullOrWhiteSpace(referenceId) ? null : referenceId.Trim();
         Metadata = string.IsNullOrWhiteSpace(metadata) ? null : metadata.Trim();
+        Description = ResolveDescription(type, description, AssetSymbol, grossAmount, Currency);
         CreatedAt = createdAt ?? DateTime.UtcNow;
         UpdatedAt = null;
         DeletedAt = null;
@@ -60,7 +60,6 @@ public sealed class LedgerEntry : Entity
             new Contract<Notification>()
                 .Requires()
                 .IsNotEmpty(UserId, "LedgerEntry.UserId", "UserId is required.")
-                .IsNotNullOrEmpty(Description, "LedgerEntry.Description", "Description is required.")
                 .IsLowerThan(Description, 160, "LedgerEntry.Description", "Description must have up to 160 characters.")
                 .IsNotNullOrEmpty(Currency, "LedgerEntry.Currency", "Currency is required.")
                 .IsGreaterOrEqualsThan(Currency.Length, 3, "LedgerEntry.Currency", "Currency must have 3 characters.")
@@ -93,5 +92,30 @@ public sealed class LedgerEntry : Entity
                 AddNotification("LedgerEntry.UnitPriceAmount", "UnitPriceAmount must be greater than zero for buy and sell entries.");
             }
         }
+    }
+
+    private static string ResolveDescription(
+        LedgerEntryType type,
+        string? rawDescription,
+        string? assetSymbol,
+        decimal grossAmount,
+        string currency)
+    {
+        if (!string.IsNullOrWhiteSpace(rawDescription))
+        {
+            return rawDescription.Trim();
+        }
+
+        return type switch
+        {
+            LedgerEntryType.Buy => $"Compra {assetSymbol ?? string.Empty}".Trim(),
+            LedgerEntryType.Sell => $"Venda {assetSymbol ?? string.Empty}".Trim(),
+            LedgerEntryType.Income => $"Provento {assetSymbol ?? string.Empty}".Trim(),
+            LedgerEntryType.Fee => $"Taxa {currency} {grossAmount:F2}",
+            LedgerEntryType.Tax => $"Imposto {currency} {grossAmount:F2}",
+            LedgerEntryType.Adjustment => "Ajuste de extrato",
+            LedgerEntryType.CorporateAction => $"Evento corporativo {assetSymbol ?? string.Empty}".Trim(),
+            _ => "Lancamento no extrato"
+        };
     }
 }

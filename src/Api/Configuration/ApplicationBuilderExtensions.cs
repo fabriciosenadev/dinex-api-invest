@@ -23,6 +23,6 @@ public static class ApplicationBuilderExtensions
     {
         using var scope = app.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<DinExDbContext>();
-        dbContext.Database.EnsureCreated();
+        dbContext.Database.Migrate();
     }
 }

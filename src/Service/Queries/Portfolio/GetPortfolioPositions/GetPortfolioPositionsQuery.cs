@@ -1,4 +1,4 @@
 
 namespace DinExApi.Service;
 
-public sealed record GetPortfolioPositionsQuery : IQuery<OperationResult<IReadOnlyCollection<PortfolioPositionItem>>>;
+public sealed record GetPortfolioPositionsQuery(Guid UserId) : IQuery<OperationResult<IReadOnlyCollection<PortfolioPositionItem>>>;

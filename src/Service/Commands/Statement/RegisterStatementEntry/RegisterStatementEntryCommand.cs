@@ -3,7 +3,7 @@ namespace DinExApi.Service;
 public sealed record RegisterStatementEntryCommand(
     Guid UserId,
     LedgerEntryType Type,
-    string Description,
+    string? Description,
     decimal GrossAmount,
     decimal NetAmount,
     string Currency,
