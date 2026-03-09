@@ -33,6 +33,11 @@ internal sealed class SqliteCorporateEventProcessor(IRepository<InvestmentOperat
                     {
                         assetSymbol = targetAsset;
                     }
+                    quantity = Math.Round(operation.Quantity * corporateEvent.Factor, 6, MidpointRounding.AwayFromZero);
+                    unitPriceAmount = Math.Round(
+                        corporateEvent.Factor == 0 ? operation.UnitPriceAmount : operation.UnitPriceAmount / corporateEvent.Factor,
+                        6,
+                        MidpointRounding.AwayFromZero);
                     break;
                 case CorporateEventType.Split:
                     quantity = Math.Round(operation.Quantity * corporateEvent.Factor, 6, MidpointRounding.AwayFromZero);

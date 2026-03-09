@@ -52,6 +52,42 @@ public sealed class InMemoryDataStore
         }
     }
 
+    public void DeleteCorporateEventsByUserId(Guid userId)
+    {
+        lock (_lock)
+        {
+            _corporateEvents.RemoveAll(x => x.UserId == userId);
+        }
+    }
+
+    public CorporateEvent? FindCorporateEventById(Guid userId, Guid eventId)
+    {
+        lock (_lock)
+        {
+            return _corporateEvents.FirstOrDefault(x => x.UserId == userId && x.Id == eventId);
+        }
+    }
+
+    public void UpdateCorporateEvent(CorporateEvent corporateEvent)
+    {
+        lock (_lock)
+        {
+            var index = _corporateEvents.FindIndex(x => x.UserId == corporateEvent.UserId && x.Id == corporateEvent.Id);
+            if (index >= 0)
+            {
+                _corporateEvents[index] = corporateEvent;
+            }
+        }
+    }
+
+    public void DeleteCorporateEventById(Guid userId, Guid eventId)
+    {
+        lock (_lock)
+        {
+            _corporateEvents.RemoveAll(x => x.UserId == userId && x.Id == eventId);
+        }
+    }
+
     public int ApplyCorporateEvent(CorporateEvent corporateEvent)
     {
         lock (_lock)
@@ -81,6 +117,15 @@ public sealed class InMemoryDataStore
 
         var quantity = operation.Quantity;
         var unitPrice = operation.UnitPrice.Amount;
+
+        if (corporateEvent.Type == CorporateEventType.TickerChange)
+        {
+            quantity = Math.Round(quantity * corporateEvent.Factor, 6, MidpointRounding.AwayFromZero);
+            unitPrice = Math.Round(
+                corporateEvent.Factor == 0 ? unitPrice : unitPrice / corporateEvent.Factor,
+                6,
+                MidpointRounding.AwayFromZero);
+        }
 
         if (corporateEvent.Type == CorporateEventType.Split)
         {

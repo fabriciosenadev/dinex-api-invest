@@ -2,7 +2,7 @@ namespace DinExApi.Service;
 
 public sealed class RegisterCorporateEventCommandHandler(
     ICorporateEventRepository corporateEventRepository,
-    ICorporateEventProcessor corporateEventProcessor,
+    IInvestmentPortfolioRebuilder portfolioRebuilder,
     IUnitOfWork unitOfWork)
     : ICommandHandler<RegisterCorporateEventCommand, OperationResult<RegisterCorporateEventResult>>
 {
@@ -28,7 +28,7 @@ public sealed class RegisterCorporateEventCommandHandler(
         }
 
         await corporateEventRepository.AddAsync(entity, cancellationToken);
-        var affectedOperations = await corporateEventProcessor.ApplyAsync(entity, cancellationToken);
+        var affectedOperations = await portfolioRebuilder.RebuildAsync(command.UserId, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         result.SetData(new RegisterCorporateEventResult(entity.Id, affectedOperations));

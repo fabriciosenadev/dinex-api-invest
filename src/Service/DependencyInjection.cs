@@ -11,6 +11,8 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<ClearAllEntriesCommand, OperationResult>, ClearAllEntriesCommandHandler>();
         services.AddScoped<ICommandHandler<ImportInvestmentsSpreadsheetCommand, OperationResult<ImportInvestmentsSpreadsheetResult>>, ImportInvestmentsSpreadsheetCommandHandler>();
         services.AddScoped<ICommandHandler<RegisterCorporateEventCommand, OperationResult<RegisterCorporateEventResult>>, RegisterCorporateEventCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateCorporateEventCommand, OperationResult<RegisterCorporateEventResult>>, UpdateCorporateEventCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteCorporateEventCommand, OperationResult<RegisterCorporateEventResult>>, DeleteCorporateEventCommandHandler>();
         services.AddScoped<ICommandHandler<AuthenticateUserCommand, OperationResult<AuthenticatedUserResult>>, AuthenticateUserCommandHandler>();
         services.AddScoped<ICommandHandler<RefreshSessionCommand, OperationResult<AuthenticatedUserResult>>, RefreshSessionCommandHandler>();
         services.AddScoped<ICommandHandler<LogoutUserCommand, OperationResult>, LogoutUserCommandHandler>();

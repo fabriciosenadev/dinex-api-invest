@@ -17,6 +17,7 @@ public static class DependencyInjection
             services.AddScoped<ILedgerEntryRepository, SqliteLedgerEntryRepository>();
             services.AddScoped<ICorporateEventRepository, SqliteCorporateEventRepository>();
             services.AddScoped<ICorporateEventProcessor, SqliteCorporateEventProcessor>();
+            services.AddScoped<IInvestmentPortfolioRebuilder, InvestmentPortfolioRebuilder>();
             services.AddScoped<IUserRepository, SqliteUserRepository>();
             services.AddScoped<IUserActivationEmailSender, UserActivationEmailSender>();
             services.AddScoped<IUserPasswordResetEmailSender, UserPasswordResetEmailSender>();
@@ -33,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped<ILedgerEntryRepository, InMemoryLedgerEntryRepository>();
         services.AddScoped<ICorporateEventRepository, InMemoryCorporateEventRepository>();
         services.AddScoped<ICorporateEventProcessor, InMemoryCorporateEventProcessor>();
+        services.AddScoped<IInvestmentPortfolioRebuilder, InvestmentPortfolioRebuilder>();
         services.AddScoped<IUserRepository, InMemoryUserRepository>();
         services.AddScoped<IUserActivationEmailSender, UserActivationEmailSender>();
         services.AddScoped<IUserPasswordResetEmailSender, UserPasswordResetEmailSender>();

@@ -3,6 +3,7 @@ namespace DinExApi.Service;
 public sealed class ClearAllEntriesCommandHandler(
     IInvestmentOperationRepository investmentOperationRepository,
     ILedgerEntryRepository ledgerEntryRepository,
+    ICorporateEventRepository corporateEventRepository,
     IUnitOfWork unitOfWork) : ICommandHandler<ClearAllEntriesCommand, OperationResult>
 {
     public async Task<OperationResult> HandleAsync(ClearAllEntriesCommand command, CancellationToken cancellationToken = default)
@@ -13,6 +14,7 @@ public sealed class ClearAllEntriesCommandHandler(
         {
             await investmentOperationRepository.DeleteByUserIdAsync(command.UserId, cancellationToken);
             await ledgerEntryRepository.DeleteByUserIdAsync(command.UserId, cancellationToken);
+            await corporateEventRepository.DeleteByUserIdAsync(command.UserId, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return result;
         }
