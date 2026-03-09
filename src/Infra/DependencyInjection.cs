@@ -15,6 +15,8 @@ public static class DependencyInjection
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IInvestmentOperationRepository, SqliteInvestmentOperationRepository>();
             services.AddScoped<ILedgerEntryRepository, SqliteLedgerEntryRepository>();
+            services.AddScoped<ICorporateEventRepository, SqliteCorporateEventRepository>();
+            services.AddScoped<ICorporateEventProcessor, SqliteCorporateEventProcessor>();
             services.AddScoped<IUserRepository, SqliteUserRepository>();
             services.AddScoped<IUserActivationEmailSender, UserActivationEmailSender>();
             services.AddScoped<IUserPasswordResetEmailSender, UserPasswordResetEmailSender>();
@@ -29,6 +31,8 @@ public static class DependencyInjection
         services.AddSingleton<InMemoryDataStore>();
         services.AddScoped<IInvestmentOperationRepository, InMemoryInvestmentOperationRepository>();
         services.AddScoped<ILedgerEntryRepository, InMemoryLedgerEntryRepository>();
+        services.AddScoped<ICorporateEventRepository, InMemoryCorporateEventRepository>();
+        services.AddScoped<ICorporateEventProcessor, InMemoryCorporateEventProcessor>();
         services.AddScoped<IUserRepository, InMemoryUserRepository>();
         services.AddScoped<IUserActivationEmailSender, UserActivationEmailSender>();
         services.AddScoped<IUserPasswordResetEmailSender, UserPasswordResetEmailSender>();

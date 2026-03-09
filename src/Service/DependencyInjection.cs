@@ -10,6 +10,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<RegisterStatementEntryCommand, OperationResult<Guid>>, RegisterStatementEntryCommandHandler>();
         services.AddScoped<ICommandHandler<ClearAllEntriesCommand, OperationResult>, ClearAllEntriesCommandHandler>();
         services.AddScoped<ICommandHandler<ImportInvestmentsSpreadsheetCommand, OperationResult<ImportInvestmentsSpreadsheetResult>>, ImportInvestmentsSpreadsheetCommandHandler>();
+        services.AddScoped<ICommandHandler<RegisterCorporateEventCommand, OperationResult<RegisterCorporateEventResult>>, RegisterCorporateEventCommandHandler>();
         services.AddScoped<ICommandHandler<AuthenticateUserCommand, OperationResult<AuthenticatedUserResult>>, AuthenticateUserCommandHandler>();
         services.AddScoped<ICommandHandler<RefreshSessionCommand, OperationResult<AuthenticatedUserResult>>, RefreshSessionCommandHandler>();
         services.AddScoped<ICommandHandler<LogoutUserCommand, OperationResult>, LogoutUserCommandHandler>();
@@ -21,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<ActivateUserCommand, OperationResult>, ActivateUserCommandHandler>();
         services.AddScoped<IQueryHandler<GetPortfolioPositionsQuery, OperationResult<IReadOnlyCollection<PortfolioPositionItem>>>, GetPortfolioPositionsQueryHandler>();
         services.AddScoped<IQueryHandler<GetStatementEntriesQuery, OperationResult<IReadOnlyCollection<StatementEntryItem>>>, GetStatementEntriesQueryHandler>();
+        services.AddScoped<IQueryHandler<GetCorporateEventsQuery, OperationResult<IReadOnlyCollection<CorporateEventItem>>>, GetCorporateEventsQueryHandler>();
         services.AddScoped<IQueryHandler<GetCurrentUserQuery, OperationResult<CurrentUserItem>>, GetCurrentUserQueryHandler>();
         return services;
     }

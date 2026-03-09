@@ -5,6 +5,7 @@ public sealed class DinExDbContext(DbContextOptions<DinExDbContext> options) : D
 {
     public DbSet<InvestmentOperationRecord> InvestmentOperations => Set<InvestmentOperationRecord>();
     public DbSet<LedgerEntryRecord> LedgerEntries => Set<LedgerEntryRecord>();
+    public DbSet<CorporateEventRecord> CorporateEvents => Set<CorporateEventRecord>();
     public DbSet<UserRecord> Users => Set<UserRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
