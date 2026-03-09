@@ -257,14 +257,51 @@ internal sealed class B3InvestmentSpreadsheetParser : IInvestmentSpreadsheetPars
     private static string NormalizeAsset(string value)
     {
         var normalized = value.Trim().ToUpperInvariant();
-        return normalized
-            .Replace("F ", string.Empty, StringComparison.Ordinal)
-            .Replace(" ON", string.Empty, StringComparison.Ordinal)
-            .Replace(" PN", string.Empty, StringComparison.Ordinal)
-            .Replace(" N1", string.Empty, StringComparison.Ordinal)
-            .Replace(" N2", string.Empty, StringComparison.Ordinal)
-            .Replace(" NM", string.Empty, StringComparison.Ordinal)
-            .Replace(" ", string.Empty, StringComparison.Ordinal);
+
+        if (normalized.StartsWith("TESOURO ", StringComparison.Ordinal))
+        {
+            return normalized.Replace(" ", string.Empty, StringComparison.Ordinal);
+        }
+
+        var parts = normalized
+            .Split(" - ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (parts.Length >= 2 && (parts[0] is "LCA" or "LCI" or "CDB" or "RDB" or "CRI" or "CRA"))
+        {
+            return $"{parts[0]}-{SanitizeSegment(parts[1])}";
+        }
+
+        var leadingToken = parts.Length > 0
+            ? SanitizeSegment(parts[0])
+            : SanitizeSegment(normalized);
+        if (IsLikelyVariableIncomeTicker(leadingToken))
+        {
+            return leadingToken;
+        }
+
+        var tickerLike = Regex.Match(normalized, @"\b[A-Z0-9]{4,5}\d{1,2}\b");
+        if (tickerLike.Success)
+        {
+            return tickerLike.Value;
+        }
+
+        return SanitizeSegment(normalized);
+    }
+
+    private static bool IsLikelyVariableIncomeTicker(string value)
+        => Regex.IsMatch(value, @"^[A-Z0-9]{4,5}\d{1,2}$");
+
+    private static string SanitizeSegment(string value)
+    {
+        var sanitized = value
+            .Replace(" ", string.Empty, StringComparison.Ordinal)
+            .Replace("/", string.Empty, StringComparison.Ordinal)
+            .Replace(".", string.Empty, StringComparison.Ordinal)
+            .Replace(",", string.Empty, StringComparison.Ordinal)
+            .Replace("(", string.Empty, StringComparison.Ordinal)
+            .Replace(")", string.Empty, StringComparison.Ordinal);
+
+        return sanitized;
     }
 
     private static string Normalize(string value)

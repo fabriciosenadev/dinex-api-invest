@@ -34,7 +34,7 @@ public sealed class InvestmentOperationTests
     }
 
     [Fact]
-    public void Should_Be_Invalid_When_Quantity_Or_Price_Are_Invalid()
+    public void Should_Be_Invalid_When_Quantity_Is_Invalid()
     {
         var operation = new InvestmentOperation(
             userId: Guid.NewGuid(),
@@ -46,6 +46,5 @@ public sealed class InvestmentOperationTests
 
         Assert.False(operation.IsValid);
         Assert.Contains(operation.Notifications, n => n.Key == "InvestmentOperation.Quantity");
-        Assert.Contains(operation.Notifications, n => n.Key == "InvestmentOperation.UnitPrice");
     }
 }

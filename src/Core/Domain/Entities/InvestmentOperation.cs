@@ -25,7 +25,7 @@ public sealed class InvestmentOperation : Entity
                 .IsNotEmpty(UserId, "InvestmentOperation.UserId", "User is required.")
                 .IsNotNullOrWhiteSpace(AssetSymbol, "InvestmentOperation.AssetSymbol", "Asset symbol is required.")
                 .IsGreaterThan(Quantity, 0, "InvestmentOperation.Quantity", "Quantity must be greater than zero.")
-                .IsGreaterThan(UnitPrice.Amount, 0, "InvestmentOperation.UnitPrice", "Unit price must be greater than zero."));
+                .IsGreaterOrEqualsThan(UnitPrice.Amount, 0, "InvestmentOperation.UnitPrice", "Unit price cannot be negative."));
     }
 
     public Guid UserId { get; private set; }
