@@ -7,19 +7,21 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
     {
         var parser = new FakeSpreadsheetParser(
         [
-            new ImportedSpreadsheetRow(2, new DateTime(2021, 1, 10), "Venda", "Venda a mercado", "Entrada", "PETR4", 5, 31.50m, 157.50m, 157.50m, "BRL", "mov-2021.xlsx"),
-            new ImportedSpreadsheetRow(3, new DateTime(2020, 1, 10), "Compra", "Compra a mercado", "Saida", "PETR4", 10, 30.00m, -300.00m, -300.00m, "BRL", "mov-2020.xlsx"),
+            new ImportedSpreadsheetRow(2, new DateTime(2021, 1, 10), "Transferência - Liquidação", "Transferência - Liquidação", "Debito", "PETR4", 5, 31.50m, 157.50m, 157.50m, "BRL", "mov-2021.xlsx"),
+            new ImportedSpreadsheetRow(3, new DateTime(2020, 1, 10), "Transferência - Liquidação", "Transferência - Liquidação", "Credito", "PETR4", 10, 30.00m, -300.00m, -300.00m, "BRL", "mov-2020.xlsx"),
             new ImportedSpreadsheetRow(4, new DateTime(2020, 6, 12), "Dividendo", "Rendimento", "Entrada", "PETR4", null, null, 20.00m, 20.00m, "BRL", "mov-2020.xlsx")
         ]);
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
         var unitOfWork = new SpyUnitOfWork();
+        var rebuilder = new SpyInvestmentPortfolioRebuilder();
         var handler = new ImportInvestmentsSpreadsheetCommandHandler(
             parser,
             new B3InvestmentMovementClassifier(),
             movementRepository,
             ledgerRepository,
-            unitOfWork);
+            unitOfWork,
+            rebuilder);
 
         var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
             Guid.NewGuid(),
@@ -35,6 +37,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         Assert.Equal(3, result.Data.ImportedStatementEntries);
         Assert.Equal(0, result.Data.SkippedRows);
         Assert.Equal(1, unitOfWork.SaveChangesCallCount);
+        Assert.Equal(1, rebuilder.CallCount);
         Assert.Equal(new DateTime(2020, 1, 10), movementRepository.Items.First().OccurredAtUtc.Date);
     }
 
@@ -43,7 +46,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
     {
         var parser = new FakeSpreadsheetParser(
         [
-            new ImportedSpreadsheetRow(2, new DateTime(2020, 1, 10), "Compra", "Compra a mercado", "Saida", null, 10, 30.00m, -300.00m, -300.00m, "BRL", "mov.xlsx")
+            new ImportedSpreadsheetRow(2, new DateTime(2020, 1, 10), "Transferência - Liquidação", "Transferência - Liquidação", "Credito", null, 10, 30.00m, -300.00m, -300.00m, "BRL", "mov.xlsx")
         ]);
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
@@ -53,7 +56,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
             new B3InvestmentMovementClassifier(),
             movementRepository,
             ledgerRepository,
-            unitOfWork);
+            unitOfWork, new NoopInvestmentPortfolioRebuilder());
 
         var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
             Guid.NewGuid(),
@@ -66,12 +69,12 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
     }
 
     [Fact]
-    public async Task Should_Classify_CompraVenda_By_Direction_And_Allow_Bonus_Without_UnitPrice()
+    public async Task Should_Create_Movement_Only_For_TransferenciaLiquidacao()
     {
         var parser = new FakeSpreadsheetParser(
         [
             new ImportedSpreadsheetRow(2, new DateTime(2025, 1, 10), "COMPRA / VENDA", "COMPRA / VENDA", "Credito", "CPTS11", 10, 8.50m, 85.00m, 85.00m, "BRL", "mov.xlsx"),
-            new ImportedSpreadsheetRow(3, new DateTime(2025, 1, 11), "COMPRA / VENDA", "COMPRA / VENDA", "Debito", "CPTS11", 5, 8.80m, -44.00m, -44.00m, "BRL", "mov.xlsx"),
+            new ImportedSpreadsheetRow(3, new DateTime(2025, 1, 11), "Transferência - Liquidação", "Transferência - Liquidação", "Debito", "CPTS11", 5, 8.80m, -44.00m, -44.00m, "BRL", "mov.xlsx"),
             new ImportedSpreadsheetRow(4, new DateTime(2025, 1, 12), "Bonificação em Ativos", "Bonificação em Ativos", "Credito", "ITUB4", 0.84m, null, null, null, "BRL", "mov.xlsx")
         ]);
         var movementRepository = new FakeInvestmentOperationRepository();
@@ -82,18 +85,16 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
             new B3InvestmentMovementClassifier(),
             movementRepository,
             ledgerRepository,
-            unitOfWork);
+            unitOfWork, new NoopInvestmentPortfolioRebuilder());
 
         var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
             Guid.NewGuid(),
             [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1, 2, 3])]));
 
         Assert.True(result.Succeeded);
-        Assert.Equal(3, result.Data!.ImportedMovements);
-        Assert.Equal(OperationType.Buy, movementRepository.Items[0].Type);
-        Assert.Equal(OperationType.Sell, movementRepository.Items[1].Type);
-        Assert.Equal(OperationType.Buy, movementRepository.Items[2].Type);
-        Assert.Equal(0m, movementRepository.Items[2].UnitPrice.Amount);
+        Assert.Equal(1, result.Data!.ImportedMovements);
+        Assert.Single(movementRepository.Items);
+        Assert.Equal(OperationType.Sell, movementRepository.Items[0].Type);
     }
 
     [Fact]
@@ -112,15 +113,15 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
             new B3InvestmentMovementClassifier(),
             movementRepository,
             ledgerRepository,
-            unitOfWork);
+            unitOfWork, new NoopInvestmentPortfolioRebuilder());
 
         var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
             Guid.NewGuid(),
             [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1, 2, 3])]));
 
         Assert.True(result.Succeeded);
-        Assert.Equal("AESB1", movementRepository.Items[0].AssetSymbol);
-        Assert.Equal("MXRF12", movementRepository.Items[1].AssetSymbol);
+        Assert.Single(movementRepository.Items);
+        Assert.Equal("MXRF12", movementRepository.Items[0].AssetSymbol);
     }
 
     [Fact]
@@ -141,7 +142,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
             new B3InvestmentMovementClassifier(),
             movementRepository,
             ledgerRepository,
-            unitOfWork);
+            unitOfWork, new NoopInvestmentPortfolioRebuilder());
 
         var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
             Guid.NewGuid(),
@@ -155,7 +156,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
     }
 
     [Fact]
-    public async Task Should_Create_Position_Movement_For_Standalone_Transferencia()
+    public async Task Should_Not_Create_Movement_For_Standalone_Transferencia()
     {
         var parser = new FakeSpreadsheetParser(
         [
@@ -170,16 +171,14 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
             new B3InvestmentMovementClassifier(),
             movementRepository,
             ledgerRepository,
-            unitOfWork);
+            unitOfWork, new NoopInvestmentPortfolioRebuilder());
 
         var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
             Guid.NewGuid(),
             [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1, 2, 3])]));
 
         Assert.True(result.Succeeded);
-        Assert.Single(movementRepository.Items);
-        Assert.Equal("GAME11", movementRepository.Items[0].AssetSymbol);
-        Assert.Equal(OperationType.Buy, movementRepository.Items[0].Type);
+        Assert.Empty(movementRepository.Items);
     }
 
     private sealed class FakeSpreadsheetParser(IReadOnlyCollection<ImportedSpreadsheetRow> rows) : IInvestmentSpreadsheetParser
@@ -231,4 +230,22 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
             CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyCollection<LedgerEntry>>([]);
     }
+
+    private sealed class NoopInvestmentPortfolioRebuilder : IInvestmentPortfolioRebuilder
+    {
+        public Task<int> RebuildAsync(Guid userId, CancellationToken cancellationToken = default)
+            => Task.FromResult(0);
+    }
+
+    private sealed class SpyInvestmentPortfolioRebuilder : IInvestmentPortfolioRebuilder
+    {
+        public int CallCount { get; private set; }
+
+        public Task<int> RebuildAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            CallCount += 1;
+            return Task.FromResult(0);
+        }
+    }
 }
+

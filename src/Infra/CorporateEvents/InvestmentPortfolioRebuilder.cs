@@ -49,6 +49,11 @@ internal sealed class InvestmentPortfolioRebuilder(
             appliedOperations += await corporateEventProcessor.ApplyAsync(corporateEvent, cancellationToken);
         }
 
+        if (appliedOperations > 0)
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
         return appliedOperations;
     }
 }

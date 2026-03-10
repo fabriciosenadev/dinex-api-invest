@@ -5,7 +5,8 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
     IInvestmentMovementClassifier movementClassifier,
     IInvestmentOperationRepository investmentOperationRepository,
     ILedgerEntryRepository ledgerEntryRepository,
-    IUnitOfWork unitOfWork) : ICommandHandler<ImportInvestmentsSpreadsheetCommand, OperationResult<ImportInvestmentsSpreadsheetResult>>
+    IUnitOfWork unitOfWork,
+    IInvestmentPortfolioRebuilder portfolioRebuilder) : ICommandHandler<ImportInvestmentsSpreadsheetCommand, OperationResult<ImportInvestmentsSpreadsheetResult>>
 {
     public async Task<OperationResult<ImportInvestmentsSpreadsheetResult>> HandleAsync(
         ImportInvestmentsSpreadsheetCommand command,
@@ -90,6 +91,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
             }
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
+            await portfolioRebuilder.RebuildAsync(command.UserId, cancellationToken);
             result.SetData(new ImportInvestmentsSpreadsheetResult(
                 ProcessedFiles: command.Files.Count,
                 TotalRowsRead: allRows.Count,
