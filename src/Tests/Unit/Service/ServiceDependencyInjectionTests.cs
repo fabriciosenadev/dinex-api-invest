@@ -20,6 +20,7 @@ public sealed class ServiceDependencyInjectionTests
         Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<ImportInvestmentsSpreadsheetCommand, OperationResult<ImportInvestmentsSpreadsheetResult>>));
         Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<ReconcilePortfolioCommand, OperationResult<ReconcilePortfolioResult>>));
         Assert.Contains(services, x => x.ServiceType == typeof(IQueryHandler<GetPortfolioPositionsQuery, OperationResult<IReadOnlyCollection<PortfolioPositionItem>>>));
+        Assert.Contains(services, x => x.ServiceType == typeof(IQueryHandler<GetIncomeTaxSummaryQuery, OperationResult<IReadOnlyCollection<IncomeTaxYearSummaryItem>>>));
         Assert.Contains(services, x => x.ServiceType == typeof(IQueryHandler<GetStatementEntriesQuery, OperationResult<IReadOnlyCollection<StatementEntryItem>>>));
         Assert.Contains(services, x => x.ServiceType == typeof(IQueryHandler<GetCurrentUserQuery, OperationResult<CurrentUserItem>>));
     }

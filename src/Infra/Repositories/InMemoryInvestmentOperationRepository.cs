@@ -28,6 +28,24 @@ public sealed class InMemoryInvestmentOperationRepository(InMemoryDataStore data
         return Task.FromResult<IReadOnlyCollection<PortfolioPosition>>(positions);
     }
 
+    public Task<IReadOnlyCollection<InvestmentOperationSnapshot>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var operations = dataStore
+            .Snapshot(userId)
+            .OrderBy(x => x.OccurredAtUtc)
+            .ThenBy(x => x.Id)
+            .Select(x => new InvestmentOperationSnapshot(
+                x.AssetSymbol,
+                x.Type,
+                x.Quantity,
+                x.UnitPrice.Amount,
+                x.UnitPrice.Currency,
+                x.OccurredAtUtc))
+            .ToArray();
+
+        return Task.FromResult<IReadOnlyCollection<InvestmentOperationSnapshot>>(operations);
+    }
+
     private static PortfolioPosition BuildPosition(IGrouping<string, InvestmentOperation> operations)
     {
         decimal quantity = 0;

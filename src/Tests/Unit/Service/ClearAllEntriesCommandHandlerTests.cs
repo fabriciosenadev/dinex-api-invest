@@ -32,6 +32,9 @@ public sealed class ClearAllEntriesCommandHandlerTests
             return Task.CompletedTask;
         }
 
+        public Task<IReadOnlyCollection<InvestmentOperationSnapshot>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyCollection<InvestmentOperationSnapshot>>([]);
+
         public Task<IReadOnlyCollection<PortfolioPosition>> GetPortfolioPositionsAsync(Guid userId, CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyCollection<PortfolioPosition>>([]);
     }

@@ -38,6 +38,24 @@ internal sealed class SqliteInvestmentOperationRepository(IRepository<Investment
         return positions;
     }
 
+    public async Task<IReadOnlyCollection<InvestmentOperationSnapshot>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var operations = await repository.Query()
+            .Where(x => x.UserId == userId)
+            .OrderBy(x => x.OccurredAtUtc)
+            .ThenBy(x => x.Id)
+            .Select(x => new InvestmentOperationSnapshot(
+                x.AssetSymbol,
+                (OperationType)x.Type,
+                x.Quantity,
+                x.UnitPriceAmount,
+                x.Currency,
+                x.OccurredAtUtc))
+            .ToArrayAsync(cancellationToken);
+
+        return operations;
+    }
+
     private static PortfolioPosition BuildPosition(IGrouping<string, InvestmentOperationRecord> operations)
     {
         decimal quantity = 0;

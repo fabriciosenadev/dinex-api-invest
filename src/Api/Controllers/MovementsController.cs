@@ -54,6 +54,54 @@ public sealed class MovementsController(IApplicationDispatcher dispatcher) : Mai
         return HandleResult(result);
     }
 
+    [HttpGet("portfolio/income-tax-summary")]
+    [ProducesResponseType(typeof(IReadOnlyCollection<IncomeTaxYearSummaryResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> GetIncomeTaxSummary(CancellationToken cancellationToken)
+    {
+        var userId = GetUserId(HttpContext);
+        if (userId == Guid.Empty)
+        {
+            return Unauthorized(new ErrorResponse(["Authenticated user id was not found in the token."]));
+        }
+
+        var result = await dispatcher.QueryAsync<GetIncomeTaxSummaryQuery, OperationResult<IReadOnlyCollection<IncomeTaxYearSummaryItem>>>(
+            new GetIncomeTaxSummaryQuery(userId),
+            cancellationToken);
+
+        if (!result.Succeeded || result.Data is null)
+        {
+            return HandleResult(result);
+        }
+
+        var mapped = new OperationResult<IReadOnlyCollection<IncomeTaxYearSummaryResponse>>();
+        mapped.SetData(result.Data
+            .Select(year => new IncomeTaxYearSummaryResponse(
+                year.Year,
+                year.Companies
+                    .Select(company => new IncomeTaxCompanySummaryResponse(
+                        company.CompanyCode,
+                        company.TotalQuantity,
+                        company.ConsolidatedAveragePrice,
+                        company.TotalCost,
+                        company.Currency,
+                        company.Assets
+                            .Select(asset => new IncomeTaxAssetSummaryResponse(
+                                asset.AssetSymbol,
+                                asset.Quantity,
+                                asset.AveragePrice,
+                                asset.TotalCost,
+                                asset.Currency))
+                            .ToArray()))
+                    .ToArray()))
+            .ToArray());
+
+        return HandleResult(mapped);
+    }
+
     [HttpPost("portfolio/reconcile")]
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ReconcilePortfolioResponse), StatusCodes.Status200OK)]
