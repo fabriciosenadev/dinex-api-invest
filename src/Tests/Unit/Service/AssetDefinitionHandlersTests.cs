@@ -42,6 +42,54 @@ public sealed class AssetDefinitionHandlersTests
     }
 
     [Fact]
+    public async Task Update_Should_Change_Symbol_Type_And_Notes()
+    {
+        var repository = new FakeAssetDefinitionRepository();
+        var unitOfWork = new SpyUnitOfWork();
+        var userId = Guid.NewGuid();
+        var asset = AssetDefinition.Create(userId, "GOLD11", AssetType.Fii, null);
+        await repository.AddAsync(asset);
+        var handler = new UpdateAssetDefinitionCommandHandler(repository, unitOfWork);
+
+        var result = await handler.HandleAsync(new UpdateAssetDefinitionCommand(
+            userId,
+            asset.Id,
+            "GOLD11",
+            AssetType.Etf,
+            "Atualizado"));
+
+        Assert.True(result.Succeeded);
+        var updated = await repository.GetByIdAsync(userId, asset.Id);
+        Assert.NotNull(updated);
+        Assert.Equal("GOLD11", updated!.Symbol);
+        Assert.Equal(AssetType.Etf, updated.Type);
+        Assert.Equal("Atualizado", updated.Notes);
+    }
+
+    [Fact]
+    public async Task Update_Should_Return_Error_When_Symbol_Already_Used_By_Another_Asset()
+    {
+        var repository = new FakeAssetDefinitionRepository();
+        var unitOfWork = new SpyUnitOfWork();
+        var userId = Guid.NewGuid();
+        var first = AssetDefinition.Create(userId, "GOLD11", AssetType.Etf, null);
+        var second = AssetDefinition.Create(userId, "BOVA11", AssetType.Etf, null);
+        await repository.AddAsync(first);
+        await repository.AddAsync(second);
+        var handler = new UpdateAssetDefinitionCommandHandler(repository, unitOfWork);
+
+        var result = await handler.HandleAsync(new UpdateAssetDefinitionCommand(
+            userId,
+            second.Id,
+            "GOLD11",
+            AssetType.Etf,
+            null));
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Another asset definition already uses this symbol.", result.Errors);
+    }
+
+    [Fact]
     public async Task Query_Should_Return_Ordered_Asset_Definitions()
     {
         var repository = new FakeAssetDefinitionRepository();

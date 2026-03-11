@@ -81,11 +81,22 @@ public sealed class AssetDefinition : Entity
             id: id);
     }
 
-    public void Update(AssetType type, string? notes)
+    public void Update(string symbol, AssetType type, string? notes)
     {
+        Symbol = (symbol ?? string.Empty).Trim().ToUpperInvariant();
         Type = type;
         Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
         UpdatedAt = DateTime.UtcNow;
+
+        if (string.IsNullOrWhiteSpace(Symbol))
+        {
+            AddNotification("AssetDefinition.Symbol", "Asset symbol is required.");
+        }
+
+        if (Symbol.Length > 30)
+        {
+            AddNotification("AssetDefinition.Symbol", "Asset symbol must be up to 30 characters.");
+        }
 
         if (!Enum.IsDefined(Type))
         {

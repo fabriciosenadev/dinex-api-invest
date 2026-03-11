@@ -14,6 +14,7 @@ public sealed class ServiceDependencyInjectionTests
         Assert.Contains(services, x => x.ServiceType == typeof(IApplicationDispatcher));
         Assert.Contains(services, x => x.ServiceType == typeof(IAssetAliasResolver));
         Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<UpsertAssetDefinitionCommand, OperationResult<Guid>>));
+        Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<UpdateAssetDefinitionCommand, OperationResult<Guid>>));
         Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<DeleteAssetDefinitionCommand, OperationResult>));
         Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<RegisterUserCommand, OperationResult<Guid>>));
         Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<AuthenticateUserCommand, OperationResult<AuthenticatedUserResult>>));

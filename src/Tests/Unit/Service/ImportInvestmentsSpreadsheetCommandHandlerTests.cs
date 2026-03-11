@@ -13,11 +13,13 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         ]);
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
         var unitOfWork = new SpyUnitOfWork();
         var rebuilder = new SpyInvestmentPortfolioRebuilder();
         var handler = new ImportInvestmentsSpreadsheetCommandHandler(
             parser,
             new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
             movementRepository,
             ledgerRepository,
             unitOfWork,
@@ -50,10 +52,12 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         ]);
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
         var unitOfWork = new SpyUnitOfWork();
         var handler = new ImportInvestmentsSpreadsheetCommandHandler(
             parser,
             new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
             movementRepository,
             ledgerRepository,
             unitOfWork, new NoopInvestmentPortfolioRebuilder());
@@ -79,10 +83,12 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         ]);
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
         var unitOfWork = new SpyUnitOfWork();
         var handler = new ImportInvestmentsSpreadsheetCommandHandler(
             parser,
             new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
             movementRepository,
             ledgerRepository,
             unitOfWork, new NoopInvestmentPortfolioRebuilder());
@@ -107,10 +113,12 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         ]);
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
         var unitOfWork = new SpyUnitOfWork();
         var handler = new ImportInvestmentsSpreadsheetCommandHandler(
             parser,
             new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
             movementRepository,
             ledgerRepository,
             unitOfWork, new NoopInvestmentPortfolioRebuilder());
@@ -136,10 +144,12 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
 
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
         var unitOfWork = new SpyUnitOfWork();
         var handler = new ImportInvestmentsSpreadsheetCommandHandler(
             parser,
             new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
             movementRepository,
             ledgerRepository,
             unitOfWork, new NoopInvestmentPortfolioRebuilder());
@@ -165,10 +175,12 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
 
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
         var unitOfWork = new SpyUnitOfWork();
         var handler = new ImportInvestmentsSpreadsheetCommandHandler(
             parser,
             new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
             movementRepository,
             ledgerRepository,
             unitOfWork, new NoopInvestmentPortfolioRebuilder());
@@ -179,6 +191,68 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
 
         Assert.True(result.Succeeded);
         Assert.Empty(movementRepository.Items);
+    }
+
+    [Fact]
+    public async Task Should_Create_Asset_Definition_During_Import_When_Asset_Is_Not_Cataloged()
+    {
+        var userId = Guid.NewGuid();
+        var parser = new FakeSpreadsheetParser(
+        [
+            new ImportedSpreadsheetRow(2, new DateTime(2024, 1, 10), "Transferência - Liquidação", "Transferência - Liquidação", "Credito", "GOLD11", 1, 10m, 10m, 10m, "BRL", "mov.xlsx")
+        ]);
+        var movementRepository = new FakeInvestmentOperationRepository();
+        var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
+        var unitOfWork = new SpyUnitOfWork();
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
+            movementRepository,
+            ledgerRepository,
+            unitOfWork, new NoopInvestmentPortfolioRebuilder());
+
+        var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
+            userId,
+            [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1])]));
+
+        Assert.True(result.Succeeded);
+        var asset = await assetDefinitionRepository.GetBySymbolAsync(userId, "GOLD11");
+        Assert.NotNull(asset);
+        Assert.Equal(AssetType.Etf, asset!.Type);
+    }
+
+    [Fact]
+    public async Task Should_Not_Overwrite_Existing_Asset_Catalog_Type_During_Import()
+    {
+        var userId = Guid.NewGuid();
+        var parser = new FakeSpreadsheetParser(
+        [
+            new ImportedSpreadsheetRow(2, new DateTime(2024, 1, 10), "Transferência - Liquidação", "Transferência - Liquidação", "Credito", "GOLD11", 1, 10m, 10m, 10m, "BRL", "mov.xlsx")
+        ]);
+        var movementRepository = new FakeInvestmentOperationRepository();
+        var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
+        await assetDefinitionRepository.AddAsync(AssetDefinition.Create(userId, "GOLD11", AssetType.Fii, "manual"));
+        var unitOfWork = new SpyUnitOfWork();
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
+            movementRepository,
+            ledgerRepository,
+            unitOfWork, new NoopInvestmentPortfolioRebuilder());
+
+        var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
+            userId,
+            [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1])]));
+
+        Assert.True(result.Succeeded);
+        var asset = await assetDefinitionRepository.GetBySymbolAsync(userId, "GOLD11");
+        Assert.NotNull(asset);
+        Assert.Equal(AssetType.Fii, asset!.Type);
+        Assert.Single(assetDefinitionRepository.Items);
     }
 
     private sealed class FakeSpreadsheetParser(IReadOnlyCollection<ImportedSpreadsheetRow> rows) : IInvestmentSpreadsheetParser
@@ -234,6 +308,46 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
             DateTime? toUtc = null,
             CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyCollection<LedgerEntry>>([]);
+    }
+
+    private sealed class FakeAssetDefinitionRepository : IAssetDefinitionRepository
+    {
+        public List<AssetDefinition> Items { get; } = [];
+
+        public Task AddAsync(AssetDefinition assetDefinition, CancellationToken cancellationToken = default)
+        {
+            Items.Add(assetDefinition);
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateAsync(AssetDefinition assetDefinition, CancellationToken cancellationToken = default)
+        {
+            var index = Items.FindIndex(x => x.UserId == assetDefinition.UserId && x.Id == assetDefinition.Id);
+            if (index >= 0)
+            {
+                Items[index] = assetDefinition;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task<AssetDefinition?> GetByIdAsync(Guid userId, Guid assetDefinitionId, CancellationToken cancellationToken = default)
+            => Task.FromResult(Items.FirstOrDefault(x => x.UserId == userId && x.Id == assetDefinitionId));
+
+        public Task<AssetDefinition?> GetBySymbolAsync(Guid userId, string symbol, CancellationToken cancellationToken = default)
+        {
+            var normalized = symbol.Trim().ToUpperInvariant();
+            return Task.FromResult(Items.FirstOrDefault(x => x.UserId == userId && x.Symbol == normalized));
+        }
+
+        public Task<IReadOnlyCollection<AssetDefinition>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyCollection<AssetDefinition>>(Items.Where(x => x.UserId == userId).ToArray());
+
+        public Task DeleteAsync(Guid userId, Guid assetDefinitionId, CancellationToken cancellationToken = default)
+        {
+            Items.RemoveAll(x => x.UserId == userId && x.Id == assetDefinitionId);
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class NoopInvestmentPortfolioRebuilder : IInvestmentPortfolioRebuilder

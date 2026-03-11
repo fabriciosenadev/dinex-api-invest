@@ -9,6 +9,7 @@ public static class DependencyInjection
         services.AddScoped<IAssetAliasResolver, JsonAssetAliasResolver>();
         services.AddScoped<IInvestmentMovementClassifier, B3InvestmentMovementClassifier>();
         services.AddScoped<ICommandHandler<UpsertAssetDefinitionCommand, OperationResult<Guid>>, UpsertAssetDefinitionCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateAssetDefinitionCommand, OperationResult<Guid>>, UpdateAssetDefinitionCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteAssetDefinitionCommand, OperationResult>, DeleteAssetDefinitionCommandHandler>();
         services.AddScoped<ICommandHandler<RegisterMovementCommand, OperationResult<Guid>>, RegisterMovementCommandHandler>();
         services.AddScoped<ICommandHandler<ReconcilePortfolioCommand, OperationResult<ReconcilePortfolioResult>>, ReconcilePortfolioCommandHandler>();

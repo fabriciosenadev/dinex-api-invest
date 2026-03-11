@@ -66,6 +66,33 @@ public sealed class AssetsController(IApplicationDispatcher dispatcher) : MainCo
         return HandleResult(result);
     }
 
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> UpdateAsset(
+        [FromRoute] Guid id,
+        [FromBody] UpsertAssetDefinitionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = GetUserId(HttpContext);
+        if (userId == Guid.Empty)
+        {
+            return Unauthorized(new ErrorResponse(["Authenticated user id was not found in the token."]));
+        }
+
+        if (!Enum.TryParse<AssetType>(request.Type, true, out var type))
+        {
+            return BadRequest(new ErrorResponse(["Asset type is invalid."]));
+        }
+
+        var command = new UpdateAssetDefinitionCommand(userId, id, request.Symbol, type, request.Notes);
+        var result = await dispatcher.SendAsync<UpdateAssetDefinitionCommand, OperationResult<Guid>>(command, cancellationToken);
+        return HandleResult(result);
+    }
+
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]

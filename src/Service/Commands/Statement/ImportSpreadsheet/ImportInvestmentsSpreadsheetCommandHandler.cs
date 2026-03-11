@@ -3,6 +3,7 @@ namespace DinExApi.Service;
 public sealed class ImportInvestmentsSpreadsheetCommandHandler(
     IInvestmentSpreadsheetParser parser,
     IInvestmentMovementClassifier movementClassifier,
+    IAssetDefinitionRepository assetDefinitionRepository,
     IInvestmentOperationRepository investmentOperationRepository,
     ILedgerEntryRepository ledgerEntryRepository,
     IUnitOfWork unitOfWork,
@@ -46,6 +47,9 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
             var importedMovements = 0;
             var importedStatementEntries = 0;
             var skippedRows = 0;
+            var knownAssetSymbols = (await assetDefinitionRepository.GetByUserIdAsync(command.UserId, cancellationToken))
+                .Select(x => x.Symbol)
+                .ToHashSet(StringComparer.Ordinal);
 
             foreach (var row in allRows
                          .OrderBy(x => x.OccurredAtUtc)
@@ -78,6 +82,27 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
                     skippedRows += 1;
                     warnings.Add($"File {row.FileName} row {row.RowNumber}: invalid statement data.");
                     continue;
+                }
+
+                var statementAssetSymbol = parseOutcome.StatementEntry.AssetSymbol?.Trim().ToUpperInvariant();
+                if (!string.IsNullOrWhiteSpace(statementAssetSymbol) && !knownAssetSymbols.Contains(statementAssetSymbol))
+                {
+                    var inferredType = InferAssetTypeFromSymbol(statementAssetSymbol);
+                    var inferredAsset = AssetDefinition.Create(
+                        command.UserId,
+                        statementAssetSymbol,
+                        inferredType,
+                        "Criado automaticamente na importação da planilha.");
+
+                    if (inferredAsset.IsValid)
+                    {
+                        await assetDefinitionRepository.AddAsync(inferredAsset, cancellationToken);
+                        knownAssetSymbols.Add(statementAssetSymbol);
+                    }
+                    else
+                    {
+                        warnings.Add($"File {row.FileName} row {row.RowNumber}: asset catalog entry ignored for symbol {statementAssetSymbol}.");
+                    }
                 }
 
                 await ledgerEntryRepository.AddAsync(parseOutcome.StatementEntry, cancellationToken);
@@ -258,6 +283,70 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
             .Replace("õ", "o", StringComparison.Ordinal)
             .Replace("ú", "u", StringComparison.Ordinal)
             .Replace("ç", "c", StringComparison.Ordinal);
+    }
+
+    private static AssetType InferAssetTypeFromSymbol(string assetSymbol)
+    {
+        var normalized = assetSymbol.Trim().ToUpperInvariant();
+        if (normalized.StartsWith("TESOURO", StringComparison.Ordinal)
+            || normalized.StartsWith("LCI-", StringComparison.Ordinal)
+            || normalized.StartsWith("LCA-", StringComparison.Ordinal)
+            || normalized.StartsWith("CDB-", StringComparison.Ordinal))
+        {
+            return AssetType.FixedIncome;
+        }
+
+        if (IsKnownEtf(normalized))
+        {
+            return AssetType.Etf;
+        }
+
+        if (Regex.IsMatch(normalized, "^[A-Z]{4,5}12$"))
+        {
+            return AssetType.Other;
+        }
+
+        if (Regex.IsMatch(normalized, "^[A-Z]{4}39$") || Regex.IsMatch(normalized, "^[A-Z]{4}11B$"))
+        {
+            return AssetType.Etf;
+        }
+
+        if (Regex.IsMatch(normalized, "^[A-Z]{4}34$"))
+        {
+            return AssetType.Bdr;
+        }
+
+        if (Regex.IsMatch(normalized, "^[A-Z]{4,5}11$"))
+        {
+            if (normalized == "TAEE11")
+            {
+                return AssetType.Stock;
+            }
+
+            return AssetType.Fii;
+        }
+
+        if (Regex.IsMatch(normalized, "^[A-Z]{4,5}[3456]$"))
+        {
+            return AssetType.Stock;
+        }
+
+        return AssetType.Other;
+    }
+
+    private static bool IsKnownEtf(string assetSymbol)
+    {
+        return assetSymbol is
+            "BOVA11" or
+            "SMAL11" or
+            "IVVB11" or
+            "GOLD11" or
+            "HASH11" or
+            "BOVV11" or
+            "XBOV11" or
+            "DIVO11" or
+            "ECOO11" or
+            "PIBB11";
     }
 
     private sealed record ImportParseOutcome(

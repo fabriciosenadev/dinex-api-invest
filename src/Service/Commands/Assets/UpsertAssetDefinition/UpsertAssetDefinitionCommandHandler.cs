@@ -13,7 +13,7 @@ public sealed class UpsertAssetDefinitionCommandHandler(
         var existing = await assetDefinitionRepository.GetBySymbolAsync(command.UserId, command.Symbol, cancellationToken);
         if (existing is not null)
         {
-            existing.Update(command.Type, command.Notes);
+            existing.Update(command.Symbol, command.Type, command.Notes);
             if (!existing.IsValid)
             {
                 result.AddErrors(existing.Notifications.Select(x => x.Message));
