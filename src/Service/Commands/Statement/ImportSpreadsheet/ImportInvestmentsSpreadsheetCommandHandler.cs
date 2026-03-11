@@ -229,6 +229,21 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
     {
         var normalized = Normalize(description);
 
+        if (normalized.Contains("dividendo - transferido", StringComparison.Ordinal))
+        {
+            return LedgerEntryType.Adjustment;
+        }
+
+        if (normalized.Contains("juros sobre capital proprio - transferido", StringComparison.Ordinal))
+        {
+            return LedgerEntryType.Adjustment;
+        }
+
+        if (normalized.Contains("rendimento - transferido", StringComparison.Ordinal))
+        {
+            return LedgerEntryType.Adjustment;
+        }
+
         if (normalized.Contains("dividendo", StringComparison.Ordinal)
             || normalized.Contains("jcp", StringComparison.Ordinal)
             || normalized.Contains("rendimento", StringComparison.Ordinal)

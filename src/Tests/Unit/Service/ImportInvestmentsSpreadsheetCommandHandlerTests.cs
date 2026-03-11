@@ -194,6 +194,96 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
     }
 
     [Fact]
+    public async Task Should_Classify_Dividendo_Transferido_As_Adjustment_Not_Income()
+    {
+        var userId = Guid.NewGuid();
+        var parser = new FakeSpreadsheetParser(
+        [
+            new ImportedSpreadsheetRow(2, new DateTime(2025, 1, 17), "Dividendo - Transferido", "Dividendo - Transferido", "Credito", "TAEE11", 1m, 4.84m, 4.84m, 4.84m, "BRL", "mov.xlsx")
+        ]);
+        var movementRepository = new FakeInvestmentOperationRepository();
+        var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
+        var unitOfWork = new SpyUnitOfWork();
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
+            movementRepository,
+            ledgerRepository,
+            unitOfWork,
+            new NoopInvestmentPortfolioRebuilder());
+
+        var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
+            userId,
+            [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1])]));
+
+        Assert.True(result.Succeeded);
+        Assert.Single(ledgerRepository.Items);
+        Assert.Equal(LedgerEntryType.Adjustment, ledgerRepository.Items[0].Type);
+    }
+
+    [Fact]
+    public async Task Should_Classify_Jcp_Transferido_As_Adjustment_Not_Income()
+    {
+        var userId = Guid.NewGuid();
+        var parser = new FakeSpreadsheetParser(
+        [
+            new ImportedSpreadsheetRow(2, new DateTime(2025, 1, 17), "Juros Sobre Capital Próprio - Transferido", "Juros Sobre Capital Próprio - Transferido", "Credito", "TAEE11", 1m, 6.12m, 6.12m, 6.12m, "BRL", "mov.xlsx")
+        ]);
+        var movementRepository = new FakeInvestmentOperationRepository();
+        var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
+        var unitOfWork = new SpyUnitOfWork();
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
+            movementRepository,
+            ledgerRepository,
+            unitOfWork,
+            new NoopInvestmentPortfolioRebuilder());
+
+        var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
+            userId,
+            [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1])]));
+
+        Assert.True(result.Succeeded);
+        Assert.Single(ledgerRepository.Items);
+        Assert.Equal(LedgerEntryType.Adjustment, ledgerRepository.Items[0].Type);
+    }
+
+    [Fact]
+    public async Task Should_Classify_Rendimento_Transferido_As_Adjustment_Not_Income()
+    {
+        var userId = Guid.NewGuid();
+        var parser = new FakeSpreadsheetParser(
+        [
+            new ImportedSpreadsheetRow(2, new DateTime(2025, 1, 17), "Rendimento - Transferido", "Rendimento - Transferido", "Credito", "GAME11", 1m, 0.09m, 0.09m, 0.09m, "BRL", "mov.xlsx")
+        ]);
+        var movementRepository = new FakeInvestmentOperationRepository();
+        var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
+        var unitOfWork = new SpyUnitOfWork();
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
+            movementRepository,
+            ledgerRepository,
+            unitOfWork,
+            new NoopInvestmentPortfolioRebuilder());
+
+        var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
+            userId,
+            [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1])]));
+
+        Assert.True(result.Succeeded);
+        Assert.Single(ledgerRepository.Items);
+        Assert.Equal(LedgerEntryType.Adjustment, ledgerRepository.Items[0].Type);
+    }
+
+    [Fact]
     public async Task Should_Create_Asset_Definition_During_Import_When_Asset_Is_Not_Cataloged()
     {
         var userId = Guid.NewGuid();
