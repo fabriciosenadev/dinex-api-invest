@@ -3,6 +3,7 @@ namespace DinExApi.Infra;
 
 public sealed class InMemoryDataStore
 {
+    private readonly List<AssetDefinition> _assetDefinitions = [];
     private readonly List<InvestmentOperation> _operations = [];
     private readonly List<LedgerEntry> _ledgerEntries = [];
     private readonly List<CorporateEvent> _corporateEvents = [];
@@ -14,6 +15,64 @@ public sealed class InMemoryDataStore
         lock (_lock)
         {
             _operations.Add(operation);
+        }
+    }
+
+    public void AddAssetDefinition(AssetDefinition assetDefinition)
+    {
+        lock (_lock)
+        {
+            _assetDefinitions.Add(assetDefinition);
+        }
+    }
+
+    public IReadOnlyCollection<AssetDefinition> SnapshotAssetDefinitions(Guid userId)
+    {
+        lock (_lock)
+        {
+            return _assetDefinitions
+                .Where(x => x.UserId == userId)
+                .OrderBy(x => x.Symbol)
+                .ToArray();
+        }
+    }
+
+    public AssetDefinition? FindAssetDefinitionById(Guid userId, Guid assetDefinitionId)
+    {
+        lock (_lock)
+        {
+            return _assetDefinitions.FirstOrDefault(x => x.UserId == userId && x.Id == assetDefinitionId);
+        }
+    }
+
+    public AssetDefinition? FindAssetDefinitionBySymbol(Guid userId, string symbol)
+    {
+        var normalizedSymbol = symbol.Trim().ToUpperInvariant();
+
+        lock (_lock)
+        {
+            return _assetDefinitions
+                .FirstOrDefault(x => x.UserId == userId && string.Equals(x.Symbol, normalizedSymbol, StringComparison.Ordinal));
+        }
+    }
+
+    public void UpdateAssetDefinition(AssetDefinition assetDefinition)
+    {
+        lock (_lock)
+        {
+            var index = _assetDefinitions.FindIndex(x => x.UserId == assetDefinition.UserId && x.Id == assetDefinition.Id);
+            if (index >= 0)
+            {
+                _assetDefinitions[index] = assetDefinition;
+            }
+        }
+    }
+
+    public void DeleteAssetDefinitionById(Guid userId, Guid assetDefinitionId)
+    {
+        lock (_lock)
+        {
+            _assetDefinitions.RemoveAll(x => x.UserId == userId && x.Id == assetDefinitionId);
         }
     }
 

@@ -13,6 +13,8 @@ public sealed class ServiceDependencyInjectionTests
 
         Assert.Contains(services, x => x.ServiceType == typeof(IApplicationDispatcher));
         Assert.Contains(services, x => x.ServiceType == typeof(IAssetAliasResolver));
+        Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<UpsertAssetDefinitionCommand, OperationResult<Guid>>));
+        Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<DeleteAssetDefinitionCommand, OperationResult>));
         Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<RegisterUserCommand, OperationResult<Guid>>));
         Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<AuthenticateUserCommand, OperationResult<AuthenticatedUserResult>>));
         Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<ClearAllEntriesCommand, OperationResult>));
@@ -21,6 +23,7 @@ public sealed class ServiceDependencyInjectionTests
         Assert.Contains(services, x => x.ServiceType == typeof(ICommandHandler<ReconcilePortfolioCommand, OperationResult<ReconcilePortfolioResult>>));
         Assert.Contains(services, x => x.ServiceType == typeof(IQueryHandler<GetPortfolioPositionsQuery, OperationResult<IReadOnlyCollection<PortfolioPositionItem>>>));
         Assert.Contains(services, x => x.ServiceType == typeof(IQueryHandler<GetIncomeTaxSummaryQuery, OperationResult<IReadOnlyCollection<IncomeTaxYearSummaryItem>>>));
+        Assert.Contains(services, x => x.ServiceType == typeof(IQueryHandler<GetAssetDefinitionsQuery, OperationResult<IReadOnlyCollection<AssetDefinitionItem>>>));
         Assert.Contains(services, x => x.ServiceType == typeof(IQueryHandler<GetStatementEntriesQuery, OperationResult<IReadOnlyCollection<StatementEntryItem>>>));
         Assert.Contains(services, x => x.ServiceType == typeof(IQueryHandler<GetCurrentUserQuery, OperationResult<CurrentUserItem>>));
     }

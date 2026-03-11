@@ -8,6 +8,8 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDispatcher, ApplicationDispatcher>();
         services.AddScoped<IAssetAliasResolver, JsonAssetAliasResolver>();
         services.AddScoped<IInvestmentMovementClassifier, B3InvestmentMovementClassifier>();
+        services.AddScoped<ICommandHandler<UpsertAssetDefinitionCommand, OperationResult<Guid>>, UpsertAssetDefinitionCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteAssetDefinitionCommand, OperationResult>, DeleteAssetDefinitionCommandHandler>();
         services.AddScoped<ICommandHandler<RegisterMovementCommand, OperationResult<Guid>>, RegisterMovementCommandHandler>();
         services.AddScoped<ICommandHandler<ReconcilePortfolioCommand, OperationResult<ReconcilePortfolioResult>>, ReconcilePortfolioCommandHandler>();
         services.AddScoped<ICommandHandler<RegisterStatementEntryCommand, OperationResult<Guid>>, RegisterStatementEntryCommandHandler>();
@@ -28,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<ICommandHandler<ActivateUserCommand, OperationResult>, ActivateUserCommandHandler>();
         services.AddScoped<IQueryHandler<GetPortfolioPositionsQuery, OperationResult<IReadOnlyCollection<PortfolioPositionItem>>>, GetPortfolioPositionsQueryHandler>();
         services.AddScoped<IQueryHandler<GetIncomeTaxSummaryQuery, OperationResult<IReadOnlyCollection<IncomeTaxYearSummaryItem>>>, GetIncomeTaxSummaryQueryHandler>();
+        services.AddScoped<IQueryHandler<GetAssetDefinitionsQuery, OperationResult<IReadOnlyCollection<AssetDefinitionItem>>>, GetAssetDefinitionsQueryHandler>();
         services.AddScoped<IQueryHandler<GetStatementEntriesQuery, OperationResult<IReadOnlyCollection<StatementEntryItem>>>, GetStatementEntriesQueryHandler>();
         services.AddScoped<IQueryHandler<GetCorporateEventsQuery, OperationResult<IReadOnlyCollection<CorporateEventItem>>>, GetCorporateEventsQueryHandler>();
         services.AddScoped<IQueryHandler<GetCurrentUserQuery, OperationResult<CurrentUserItem>>, GetCurrentUserQueryHandler>();

@@ -3,6 +3,7 @@ namespace DinExApi.Infra;
 
 public sealed class DinExDbContext(DbContextOptions<DinExDbContext> options) : DbContext(options)
 {
+    public DbSet<AssetDefinitionRecord> AssetDefinitions => Set<AssetDefinitionRecord>();
     public DbSet<InvestmentOperationRecord> InvestmentOperations => Set<InvestmentOperationRecord>();
     public DbSet<LedgerEntryRecord> LedgerEntries => Set<LedgerEntryRecord>();
     public DbSet<CorporateEventRecord> CorporateEvents => Set<CorporateEventRecord>();

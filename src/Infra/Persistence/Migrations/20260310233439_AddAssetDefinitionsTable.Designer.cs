@@ -3,6 +3,7 @@ using System;
 using DinExApi.Infra;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DinExApi.Infra.Persistence.Migrations
 {
     [DbContext(typeof(DinExDbContext))]
-    partial class DinExDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260310233439_AddAssetDefinitionsTable")]
+    partial class AddAssetDefinitionsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
