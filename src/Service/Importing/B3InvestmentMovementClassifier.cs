@@ -13,6 +13,24 @@ public sealed class B3InvestmentMovementClassifier : IInvestmentMovementClassifi
 
         if (!isSettlementTransfer)
         {
+            if (!IsFixedIncomeSymbol(normalizedAssetSymbol))
+            {
+                return new MovementClassificationResult(null, normalizedAssetSymbol);
+            }
+
+            if (Contains(description, "aplicacao") || Contains(description, "compra"))
+            {
+                return new MovementClassificationResult(OperationType.Buy, normalizedAssetSymbol);
+            }
+
+            if (Contains(description, "vencimento")
+                || Contains(description, "resgate")
+                || Contains(description, "amortizacao")
+                || Contains(description, "venda"))
+            {
+                return new MovementClassificationResult(OperationType.Sell, normalizedAssetSymbol);
+            }
+
             return new MovementClassificationResult(null, normalizedAssetSymbol);
         }
 
@@ -54,4 +72,20 @@ public sealed class B3InvestmentMovementClassifier : IInvestmentMovementClassifi
         => string.IsNullOrWhiteSpace(assetSymbol)
             ? null
             : assetSymbol.Trim().ToUpperInvariant();
+
+    private static bool IsFixedIncomeSymbol(string? normalizedAssetSymbol)
+    {
+        if (string.IsNullOrWhiteSpace(normalizedAssetSymbol))
+        {
+            return false;
+        }
+
+        return normalizedAssetSymbol.StartsWith("TESOURO", StringComparison.Ordinal)
+            || normalizedAssetSymbol.StartsWith("CDB-", StringComparison.Ordinal)
+            || normalizedAssetSymbol.StartsWith("LCI-", StringComparison.Ordinal)
+            || normalizedAssetSymbol.StartsWith("LCA-", StringComparison.Ordinal)
+            || normalizedAssetSymbol.StartsWith("RDB-", StringComparison.Ordinal)
+            || normalizedAssetSymbol.StartsWith("CRI-", StringComparison.Ordinal)
+            || normalizedAssetSymbol.StartsWith("CRA-", StringComparison.Ordinal);
+    }
 }

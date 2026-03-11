@@ -194,6 +194,69 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
     }
 
     [Fact]
+    public async Task Should_Create_Movement_For_FixedIncome_Aplicacao_And_Vencimento()
+    {
+        var parser = new FakeSpreadsheetParser(
+        [
+            new ImportedSpreadsheetRow(2, new DateTime(2025, 9, 17), "Aplicação", "Aplicação", "Credito", "CDB-CDB925A3OEZ", 200m, 0.01m, 2m, 2m, "BRL", "mov.xlsx"),
+            new ImportedSpreadsheetRow(3, new DateTime(2025, 12, 23), "Vencimento", "Vencimento", "Debito", "LCA-24G00396297", 1000m, 0m, 0m, 0m, "BRL", "mov.xlsx")
+        ]);
+
+        var movementRepository = new FakeInvestmentOperationRepository();
+        var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
+        var unitOfWork = new SpyUnitOfWork();
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
+            movementRepository,
+            ledgerRepository,
+            unitOfWork,
+            new NoopInvestmentPortfolioRebuilder());
+
+        var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
+            Guid.NewGuid(),
+            [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1, 2, 3])]));
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(2, movementRepository.Items.Count);
+        Assert.Equal(OperationType.Buy, movementRepository.Items[0].Type);
+        Assert.Equal("CDB-CDB925A3OEZ", movementRepository.Items[0].AssetSymbol);
+        Assert.Equal(OperationType.Sell, movementRepository.Items[1].Type);
+        Assert.Equal("LCA-24G00396297", movementRepository.Items[1].AssetSymbol);
+    }
+
+    [Fact]
+    public async Task Should_Keep_Rv_Rule_And_Not_Create_Movement_For_CompraVenda_Without_TransferenciaLiquidacao()
+    {
+        var parser = new FakeSpreadsheetParser(
+        [
+            new ImportedSpreadsheetRow(2, new DateTime(2025, 1, 10), "COMPRA / VENDA", "COMPRA / VENDA", "Credito", "CPTS11", 10, 8.50m, 85.00m, 85.00m, "BRL", "mov.xlsx")
+        ]);
+
+        var movementRepository = new FakeInvestmentOperationRepository();
+        var ledgerRepository = new FakeLedgerRepository();
+        var assetDefinitionRepository = new FakeAssetDefinitionRepository();
+        var unitOfWork = new SpyUnitOfWork();
+        var handler = new ImportInvestmentsSpreadsheetCommandHandler(
+            parser,
+            new B3InvestmentMovementClassifier(),
+            assetDefinitionRepository,
+            movementRepository,
+            ledgerRepository,
+            unitOfWork,
+            new NoopInvestmentPortfolioRebuilder());
+
+        var result = await handler.HandleAsync(new ImportInvestmentsSpreadsheetCommand(
+            Guid.NewGuid(),
+            [new ImportInvestmentsSpreadsheetFile("mov.xlsx", [1])]));
+
+        Assert.True(result.Succeeded);
+        Assert.Empty(movementRepository.Items);
+    }
+
+    [Fact]
     public async Task Should_Classify_Dividendo_Transferido_As_Adjustment_Not_Income()
     {
         var userId = Guid.NewGuid();
