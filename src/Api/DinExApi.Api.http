@@ -1,6 +1,242 @@
 @DinExApi.Api_HostAddress = http://localhost:5254
+@accessToken = REPLACE_WITH_JWT
+@refreshToken = REPLACE_WITH_REFRESH_TOKEN
+@eventId = 00000000-0000-0000-0000-000000000000
+@assetId = 00000000-0000-0000-0000-000000000000
 
-GET {{DinExApi.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### USERS
 
-###
+### Register
+POST {{DinExApi.Api_HostAddress}}/api/users/register
+Content-Type: application/json
+
+{
+  "fullName": "Fabricio Sena",
+  "email": "fabricio.sena@email.com",
+  "password": "Password@123",
+  "confirmPassword": "Password@123"
+}
+
+### Authenticate
+POST {{DinExApi.Api_HostAddress}}/api/users/authenticate
+Content-Type: application/json
+
+{
+  "email": "fabricio.sena@email.com",
+  "password": "Password@123"
+}
+
+### Refresh token
+POST {{DinExApi.Api_HostAddress}}/api/users/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Current user
+GET {{DinExApi.Api_HostAddress}}/api/users/me
+Authorization: Bearer {{accessToken}}
+
+### Logout
+POST {{DinExApi.Api_HostAddress}}/api/users/logout
+Authorization: Bearer {{accessToken}}
+
+### Activate account
+POST {{DinExApi.Api_HostAddress}}/api/users/activate
+Content-Type: application/json
+
+{
+  "email": "fabricio.sena@email.com",
+  "activationCode": "REPLACE_WITH_CODE"
+}
+
+### Resend activation code
+POST {{DinExApi.Api_HostAddress}}/api/users/resend-activation-code
+Content-Type: application/json
+
+{
+  "email": "fabricio.sena@email.com"
+}
+
+### Forgot password
+POST {{DinExApi.Api_HostAddress}}/api/users/forgot-password
+Content-Type: application/json
+
+{
+  "email": "fabricio.sena@email.com"
+}
+
+### Reset password
+POST {{DinExApi.Api_HostAddress}}/api/users/reset-password
+Content-Type: application/json
+
+{
+  "email": "fabricio.sena@email.com",
+  "code": "REPLACE_WITH_RESET_CODE",
+  "newPassword": "NewPassword@123",
+  "confirmNewPassword": "NewPassword@123"
+}
+
+### Change password
+POST {{DinExApi.Api_HostAddress}}/api/users/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "currentPassword": "Password@123",
+  "newPassword": "NewPassword@123",
+  "confirmNewPassword": "NewPassword@123"
+}
+
+### MOVEMENTS / PORTFOLIO
+
+### Register movement
+POST {{DinExApi.Api_HostAddress}}/api/movements
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "assetSymbol": "GAME11",
+  "type": 1,
+  "quantity": 1,
+  "unitPrice": 9.68,
+  "currency": "BRL",
+  "occurredAtUtc": "2022-08-19T00:00:00Z"
+}
+
+### Get portfolio
+GET {{DinExApi.Api_HostAddress}}/api/movements/portfolio
+Authorization: Bearer {{accessToken}}
+
+### Income tax summary
+GET {{DinExApi.Api_HostAddress}}/api/movements/portfolio/income-tax-summary
+Authorization: Bearer {{accessToken}}
+
+### Reconcile portfolio (.xlsx)
+POST {{DinExApi.Api_HostAddress}}/api/movements/portfolio/reconcile
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=PortfolioBoundary
+
+--PortfolioBoundary
+Content-Disposition: form-data; name="file"; filename="relatorio-consolidado-anual-2025.xlsx"
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+< e:\_projetos\dinex\relatórios B3\relatorio-consolidado-anual-2025.xlsx
+--PortfolioBoundary--
+
+### STATEMENT
+
+### Import B3 spreadsheets (.xlsx)
+POST {{DinExApi.Api_HostAddress}}/api/statement/import
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=B3Boundary
+
+--B3Boundary
+Content-Disposition: form-data; name="files"; filename="movimentacao-2025-01-01-a-2025-01-31.xlsx"
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+< e:\_projetos\dinex\relatórios B3\movimentacao-2025-01-01-a-2025-01-31.xlsx
+--B3Boundary--
+
+### Register statement entry (manual)
+POST {{DinExApi.Api_HostAddress}}/api/statement
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "type": "Income",
+  "description": "Rendimento",
+  "grossAmount": 25.00,
+  "netAmount": 25.00,
+  "currency": "BRL",
+  "occurredAtUtc": "2025-01-08T00:00:00Z",
+  "source": "manual",
+  "assetSymbol": "MXRF11",
+  "quantity": 264,
+  "unitPriceAmount": 0.09,
+  "referenceId": null,
+  "metadata": null
+}
+
+### Get statement
+GET {{DinExApi.Api_HostAddress}}/api/statement
+Authorization: Bearer {{accessToken}}
+
+### Clear statement + portfolio
+DELETE {{DinExApi.Api_HostAddress}}/api/statement/all
+Authorization: Bearer {{accessToken}}
+
+### CORPORATE EVENTS
+
+### List events
+GET {{DinExApi.Api_HostAddress}}/api/corporate-events
+Authorization: Bearer {{accessToken}}
+
+### Register event
+POST {{DinExApi.Api_HostAddress}}/api/corporate-events
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "type": "TickerChange",
+  "sourceAssetSymbol": "TIET4",
+  "targetAssetSymbol": "AESB3",
+  "factor": 0.2,
+  "effectiveAtUtc": "2021-03-29T00:00:00Z",
+  "notes": "Migracao de ticker"
+}
+
+### Update event
+PUT {{DinExApi.Api_HostAddress}}/api/corporate-events/{{eventId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "type": "TickerChange",
+  "sourceAssetSymbol": "TIET4",
+  "targetAssetSymbol": "AESB3",
+  "factor": 0.2,
+  "effectiveAtUtc": "2021-03-29T00:00:00Z",
+  "notes": "Ajuste de fator"
+}
+
+### Delete one event
+DELETE {{DinExApi.Api_HostAddress}}/api/corporate-events/{{eventId}}
+Authorization: Bearer {{accessToken}}
+
+### Delete all events
+DELETE {{DinExApi.Api_HostAddress}}/api/corporate-events/all
+Authorization: Bearer {{accessToken}}
+
+### ASSETS
+
+### List assets
+GET {{DinExApi.Api_HostAddress}}/api/assets
+Authorization: Bearer {{accessToken}}
+
+### Create asset
+POST {{DinExApi.Api_HostAddress}}/api/assets
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "symbol": "GOLD11",
+  "type": "Etf",
+  "notes": "ETF ouro"
+}
+
+### Update asset
+PUT {{DinExApi.Api_HostAddress}}/api/assets/{{assetId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "symbol": "GOLD11",
+  "type": "Etf",
+  "notes": "Atualizado manualmente"
+}
+
+### Delete asset
+DELETE {{DinExApi.Api_HostAddress}}/api/assets/{{assetId}}
+Authorization: Bearer {{accessToken}}
