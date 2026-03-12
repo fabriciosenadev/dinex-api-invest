@@ -11,8 +11,8 @@ POST {{DinExApi.Api_HostAddress}}/api/users/register
 Content-Type: application/json
 
 {
-  "fullName": "Fabricio Sena",
-  "email": "fabricio.sena@email.com",
+  "fullName": "Usuario Teste",
+  "email": "usuario.teste@email.com",
   "password": "Password@123",
   "confirmPassword": "Password@123"
 }
@@ -22,7 +22,7 @@ POST {{DinExApi.Api_HostAddress}}/api/users/authenticate
 Content-Type: application/json
 
 {
-  "email": "fabricio.sena@email.com",
+  "email": "usuario.teste@email.com",
   "password": "Password@123"
 }
 
@@ -47,7 +47,7 @@ POST {{DinExApi.Api_HostAddress}}/api/users/activate
 Content-Type: application/json
 
 {
-  "email": "fabricio.sena@email.com",
+  "email": "usuario.teste@email.com",
   "activationCode": "REPLACE_WITH_CODE"
 }
 
@@ -56,7 +56,7 @@ POST {{DinExApi.Api_HostAddress}}/api/users/resend-activation-code
 Content-Type: application/json
 
 {
-  "email": "fabricio.sena@email.com"
+  "email": "usuario.teste@email.com"
 }
 
 ### Forgot password
@@ -64,7 +64,7 @@ POST {{DinExApi.Api_HostAddress}}/api/users/forgot-password
 Content-Type: application/json
 
 {
-  "email": "fabricio.sena@email.com"
+  "email": "usuario.teste@email.com"
 }
 
 ### Reset password
@@ -72,7 +72,7 @@ POST {{DinExApi.Api_HostAddress}}/api/users/reset-password
 Content-Type: application/json
 
 {
-  "email": "fabricio.sena@email.com",
+  "email": "usuario.teste@email.com",
   "code": "REPLACE_WITH_RESET_CODE",
   "newPassword": "NewPassword@123",
   "confirmNewPassword": "NewPassword@123"
