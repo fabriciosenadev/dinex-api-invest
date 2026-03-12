@@ -12,8 +12,11 @@ public sealed class GetPortfolioPositionsQueryHandler(IInvestmentOperationReposi
 
         try
         {
-            var positions = await repository.GetPortfolioPositionsAsync(query.UserId, cancellationToken);
-            var data = positions
+            var positions = await repository.GetPortfolioPositionsPagedAsync(
+                query.UserId,
+                new PaginationRequest(query.Page, query.PageSize),
+                cancellationToken);
+            var data = positions.Items
                 .Select(x => new PortfolioPositionItem(x.AssetSymbol, x.Quantity, x.AveragePrice, x.Currency))
                 .ToArray();
 

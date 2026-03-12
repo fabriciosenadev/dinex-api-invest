@@ -8,9 +8,12 @@ public sealed class GetAssetDefinitionsQueryHandler(IAssetDefinitionRepository a
         CancellationToken cancellationToken = default)
     {
         var result = new OperationResult<IReadOnlyCollection<AssetDefinitionItem>>();
-        var items = await assetDefinitionRepository.GetByUserIdAsync(query.UserId, cancellationToken);
+        var items = await assetDefinitionRepository.GetByUserIdPagedAsync(
+            query.UserId,
+            new PaginationRequest(query.Page, query.PageSize),
+            cancellationToken);
 
-        result.SetData(items
+        result.SetData(items.Items
             .OrderBy(x => x.Symbol)
             .Select(x => new AssetDefinitionItem(
                 x.Id,

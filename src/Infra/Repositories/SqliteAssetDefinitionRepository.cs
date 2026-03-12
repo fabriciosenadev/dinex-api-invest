@@ -40,6 +40,25 @@ internal sealed class SqliteAssetDefinitionRepository(IRepository<AssetDefinitio
         return records.Select(x => x.ToEntity()).ToArray();
     }
 
+    public async Task<PagedResult<AssetDefinition>> GetByUserIdPagedAsync(
+        Guid userId,
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
+    {
+        var records = await repository.Query()
+            .Where(x => x.UserId == userId)
+            .OrderBy(x => x.Symbol)
+            .ToPagedResultAsync(pagination, cancellationToken);
+
+        return new PagedResult<AssetDefinition>
+        {
+            Items = records.Items.Select(x => x.ToEntity()).ToArray(),
+            TotalCount = records.TotalCount,
+            Page = records.Page,
+            PageSize = records.PageSize
+        };
+    }
+
     public async Task DeleteAsync(Guid userId, Guid assetDefinitionId, CancellationToken cancellationToken = default)
     {
         var record = await repository.Query(false)

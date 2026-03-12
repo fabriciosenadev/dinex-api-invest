@@ -39,7 +39,10 @@ public sealed class MovementsController(IApplicationDispatcher dispatcher) : Mai
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> GetPortfolio(CancellationToken cancellationToken)
+    public async Task<ActionResult> GetPortfolio(
+        [FromQuery] int page = PaginationRequest.DefaultPage,
+        [FromQuery] int pageSize = PaginationRequest.DefaultPageSize,
+        CancellationToken cancellationToken = default)
     {
         var userId = GetUserId(HttpContext);
         if (userId == Guid.Empty)
@@ -48,7 +51,7 @@ public sealed class MovementsController(IApplicationDispatcher dispatcher) : Mai
         }
 
         var result = await dispatcher.QueryAsync<GetPortfolioPositionsQuery, OperationResult<IReadOnlyCollection<PortfolioPositionItem>>>(
-            new GetPortfolioPositionsQuery(userId),
+            new GetPortfolioPositionsQuery(userId, page, pageSize),
             cancellationToken);
 
         return HandleResult(result);

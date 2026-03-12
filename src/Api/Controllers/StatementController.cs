@@ -129,7 +129,9 @@ public sealed class StatementController(IApplicationDispatcher dispatcher) : Mai
     public async Task<ActionResult> GetEntries(
         [FromQuery] DateTime? fromUtc,
         [FromQuery] DateTime? toUtc,
-        CancellationToken cancellationToken)
+        [FromQuery] int page = PaginationRequest.DefaultPage,
+        [FromQuery] int pageSize = PaginationRequest.DefaultPageSize,
+        CancellationToken cancellationToken = default)
     {
         var userId = GetUserId(HttpContext);
         if (userId == Guid.Empty)
@@ -137,7 +139,7 @@ public sealed class StatementController(IApplicationDispatcher dispatcher) : Mai
             return Unauthorized(new ErrorResponse(["Authenticated user id was not found in the token."]));
         }
 
-        var query = new GetStatementEntriesQuery(userId, fromUtc, toUtc);
+        var query = new GetStatementEntriesQuery(userId, fromUtc, toUtc, page, pageSize);
         var result = await dispatcher.QueryAsync<GetStatementEntriesQuery, OperationResult<IReadOnlyCollection<StatementEntryItem>>>(
             query,
             cancellationToken);

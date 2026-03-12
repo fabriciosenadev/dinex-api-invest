@@ -9,7 +9,10 @@ public sealed class AssetsController(IApplicationDispatcher dispatcher) : MainCo
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> GetAssets(CancellationToken cancellationToken)
+    public async Task<ActionResult> GetAssets(
+        [FromQuery] int page = PaginationRequest.DefaultPage,
+        [FromQuery] int pageSize = PaginationRequest.DefaultPageSize,
+        CancellationToken cancellationToken = default)
     {
         var userId = GetUserId(HttpContext);
         if (userId == Guid.Empty)
@@ -18,7 +21,7 @@ public sealed class AssetsController(IApplicationDispatcher dispatcher) : MainCo
         }
 
         var result = await dispatcher.QueryAsync<GetAssetDefinitionsQuery, OperationResult<IReadOnlyCollection<AssetDefinitionItem>>>(
-            new GetAssetDefinitionsQuery(userId),
+            new GetAssetDefinitionsQuery(userId, page, pageSize),
             cancellationToken);
 
         if (!result.Succeeded || result.Data is null)

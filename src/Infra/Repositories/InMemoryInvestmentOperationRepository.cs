@@ -28,6 +28,15 @@ public sealed class InMemoryInvestmentOperationRepository(InMemoryDataStore data
         return Task.FromResult<IReadOnlyCollection<PortfolioPosition>>(positions);
     }
 
+    public async Task<PagedResult<PortfolioPosition>> GetPortfolioPositionsPagedAsync(
+        Guid userId,
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
+    {
+        var positions = await GetPortfolioPositionsAsync(userId, cancellationToken);
+        return positions.ToPagedResult(pagination);
+    }
+
     public Task<IReadOnlyCollection<InvestmentOperationSnapshot>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var operations = dataStore

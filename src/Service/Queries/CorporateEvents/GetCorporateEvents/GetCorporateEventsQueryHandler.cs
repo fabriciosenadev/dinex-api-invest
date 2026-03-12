@@ -8,9 +8,12 @@ public sealed class GetCorporateEventsQueryHandler(ICorporateEventRepository cor
         CancellationToken cancellationToken = default)
     {
         var result = new OperationResult<IReadOnlyCollection<CorporateEventItem>>();
-        var items = await corporateEventRepository.GetByUserIdAsync(query.UserId, cancellationToken);
+        var items = await corporateEventRepository.GetByUserIdPagedAsync(
+            query.UserId,
+            new PaginationRequest(query.Page, query.PageSize),
+            cancellationToken);
 
-        result.SetData(items
+        result.SetData(items.Items
             .OrderByDescending(x => x.EffectiveAtUtc)
             .ThenByDescending(x => x.CreatedAt)
             .Select(x => new CorporateEventItem(

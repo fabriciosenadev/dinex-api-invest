@@ -47,4 +47,38 @@ internal sealed class SqliteLedgerEntryRepository(IRepository<LedgerEntryRecord>
 
         return records.Select(x => x.ToEntity()).ToArray();
     }
+
+    public async Task<PagedResult<LedgerEntry>> GetByUserIdPagedAsync(
+        Guid userId,
+        PaginationRequest pagination,
+        DateTime? fromUtc = null,
+        DateTime? toUtc = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = repository.Query()
+            .Where(x => x.UserId == userId);
+
+        if (fromUtc.HasValue)
+        {
+            query = query.Where(x => x.OccurredAtUtc >= fromUtc.Value);
+        }
+
+        if (toUtc.HasValue)
+        {
+            query = query.Where(x => x.OccurredAtUtc <= toUtc.Value);
+        }
+
+        var records = await query
+            .OrderByDescending(x => x.OccurredAtUtc)
+            .ThenByDescending(x => x.CreatedAt)
+            .ToPagedResultAsync(pagination, cancellationToken);
+
+        return new PagedResult<LedgerEntry>
+        {
+            Items = records.Items.Select(x => x.ToEntity()).ToArray(),
+            TotalCount = records.TotalCount,
+            Page = records.Page,
+            PageSize = records.PageSize
+        };
+    }
 }

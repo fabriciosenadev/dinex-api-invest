@@ -29,6 +29,15 @@ public sealed class InMemoryAssetDefinitionRepository(InMemoryDataStore dataStor
         return Task.FromResult(dataStore.SnapshotAssetDefinitions(userId));
     }
 
+    public Task<PagedResult<AssetDefinition>> GetByUserIdPagedAsync(
+        Guid userId,
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
+    {
+        var items = dataStore.SnapshotAssetDefinitions(userId);
+        return Task.FromResult(items.ToPagedResult(pagination));
+    }
+
     public Task DeleteAsync(Guid userId, Guid assetDefinitionId, CancellationToken cancellationToken = default)
     {
         dataStore.DeleteAssetDefinitionById(userId, assetDefinitionId);

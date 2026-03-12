@@ -11,8 +11,13 @@ public sealed class GetStatementEntriesQueryHandler(ILedgerEntryRepository repos
 
         try
         {
-            var entries = await repository.GetByUserIdAsync(query.UserId, query.FromUtc, query.ToUtc, cancellationToken);
-            var data = entries
+            var entries = await repository.GetByUserIdPagedAsync(
+                query.UserId,
+                new PaginationRequest(query.Page, query.PageSize),
+                query.FromUtc,
+                query.ToUtc,
+                cancellationToken);
+            var data = entries.Items
                 .Select(x => new StatementEntryItem(
                     x.Id,
                     x.Type,

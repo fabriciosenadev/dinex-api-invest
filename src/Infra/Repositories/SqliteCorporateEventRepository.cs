@@ -58,4 +58,24 @@ internal sealed class SqliteCorporateEventRepository(IRepository<CorporateEventR
 
         return records.Select(x => x.ToEntity()).ToArray();
     }
+
+    public async Task<PagedResult<CorporateEvent>> GetByUserIdPagedAsync(
+        Guid userId,
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
+    {
+        var records = await repository.Query()
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.EffectiveAtUtc)
+            .ThenByDescending(x => x.CreatedAt)
+            .ToPagedResultAsync(pagination, cancellationToken);
+
+        return new PagedResult<CorporateEvent>
+        {
+            Items = records.Items.Select(x => x.ToEntity()).ToArray(),
+            TotalCount = records.TotalCount,
+            Page = records.Page,
+            PageSize = records.PageSize
+        };
+    }
 }

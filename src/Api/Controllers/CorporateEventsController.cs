@@ -147,7 +147,10 @@ public sealed class CorporateEventsController(IApplicationDispatcher dispatcher)
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> GetEvents(CancellationToken cancellationToken)
+    public async Task<ActionResult> GetEvents(
+        [FromQuery] int page = PaginationRequest.DefaultPage,
+        [FromQuery] int pageSize = PaginationRequest.DefaultPageSize,
+        CancellationToken cancellationToken = default)
     {
         var userId = GetUserId(HttpContext);
         if (userId == Guid.Empty)
@@ -155,7 +158,7 @@ public sealed class CorporateEventsController(IApplicationDispatcher dispatcher)
             return Unauthorized(new ErrorResponse(["Authenticated user id was not found in the token."]));
         }
 
-        var query = new GetCorporateEventsQuery(userId);
+        var query = new GetCorporateEventsQuery(userId, page, pageSize);
         var result = await dispatcher.QueryAsync<GetCorporateEventsQuery, OperationResult<IReadOnlyCollection<CorporateEventItem>>>(
             query,
             cancellationToken);

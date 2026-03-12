@@ -39,4 +39,31 @@ internal sealed class InMemoryLedgerEntryRepository(InMemoryDataStore dataStore)
 
         return Task.FromResult<IReadOnlyCollection<LedgerEntry>>(ordered);
     }
+
+    public Task<PagedResult<LedgerEntry>> GetByUserIdPagedAsync(
+        Guid userId,
+        PaginationRequest pagination,
+        DateTime? fromUtc = null,
+        DateTime? toUtc = null,
+        CancellationToken cancellationToken = default)
+    {
+        var entries = dataStore.SnapshotLedgerEntries(userId);
+
+        if (fromUtc.HasValue)
+        {
+            entries = entries.Where(x => x.OccurredAtUtc >= fromUtc.Value).ToArray();
+        }
+
+        if (toUtc.HasValue)
+        {
+            entries = entries.Where(x => x.OccurredAtUtc <= toUtc.Value).ToArray();
+        }
+
+        IReadOnlyCollection<LedgerEntry> ordered = entries
+            .OrderByDescending(x => x.OccurredAtUtc)
+            .ThenByDescending(x => x.CreatedAt)
+            .ToArray();
+
+        return Task.FromResult(ordered.ToPagedResult(pagination));
+    }
 }

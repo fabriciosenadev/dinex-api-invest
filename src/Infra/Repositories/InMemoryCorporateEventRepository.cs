@@ -35,4 +35,17 @@ public sealed class InMemoryCorporateEventRepository(InMemoryDataStore dataStore
     {
         return Task.FromResult(dataStore.SnapshotCorporateEvents(userId));
     }
+
+    public Task<PagedResult<CorporateEvent>> GetByUserIdPagedAsync(
+        Guid userId,
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
+    {
+        IReadOnlyCollection<CorporateEvent> items = dataStore.SnapshotCorporateEvents(userId)
+            .OrderByDescending(x => x.EffectiveAtUtc)
+            .ThenByDescending(x => x.CreatedAt)
+            .ToArray();
+
+        return Task.FromResult(items.ToPagedResult(pagination));
+    }
 }

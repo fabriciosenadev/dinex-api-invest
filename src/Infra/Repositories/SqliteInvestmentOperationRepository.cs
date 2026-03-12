@@ -38,6 +38,15 @@ internal sealed class SqliteInvestmentOperationRepository(IRepository<Investment
         return positions;
     }
 
+    public async Task<PagedResult<PortfolioPosition>> GetPortfolioPositionsPagedAsync(
+        Guid userId,
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
+    {
+        var all = await GetPortfolioPositionsAsync(userId, cancellationToken);
+        return all.ToPagedResult(pagination);
+    }
+
     public async Task<IReadOnlyCollection<InvestmentOperationSnapshot>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var operations = await repository.Query()

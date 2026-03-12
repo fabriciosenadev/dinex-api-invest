@@ -9,4 +9,14 @@ public interface ILedgerEntryRepository
         DateTime? fromUtc = null,
         DateTime? toUtc = null,
         CancellationToken cancellationToken = default);
+    async Task<PagedResult<LedgerEntry>> GetByUserIdPagedAsync(
+        Guid userId,
+        PaginationRequest pagination,
+        DateTime? fromUtc = null,
+        DateTime? toUtc = null,
+        CancellationToken cancellationToken = default)
+    {
+        var items = await GetByUserIdAsync(userId, fromUtc, toUtc, cancellationToken);
+        return items.ToPagedResult(pagination);
+    }
 }

@@ -8,4 +8,12 @@ public interface ICorporateEventRepository
     Task DeleteAsync(Guid userId, Guid eventId, CancellationToken cancellationToken = default);
     Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyCollection<CorporateEvent>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    async Task<PagedResult<CorporateEvent>> GetByUserIdPagedAsync(
+        Guid userId,
+        PaginationRequest pagination,
+        CancellationToken cancellationToken = default)
+    {
+        var items = await GetByUserIdAsync(userId, cancellationToken);
+        return items.ToPagedResult(pagination);
+    }
 }
