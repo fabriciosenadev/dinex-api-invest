@@ -8,3 +8,5 @@ global using System.Threading;
 global using System.Threading.Tasks;
 global using DinExApi.Core;
 global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Logging.Abstractions;
