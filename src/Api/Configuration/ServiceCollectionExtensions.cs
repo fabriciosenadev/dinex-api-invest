@@ -1,4 +1,3 @@
-
 namespace DinExApi.Api.Configuration;
 
 public static class ServiceCollectionExtensions
@@ -35,9 +34,15 @@ public static class ServiceCollectionExtensions
         services.AddEndpointsApiExplorer();
         services.AddSwaggerWithBearer();
         services.AddService();
+
+        var configuredProvider = configuration["Database:Provider"];
+        var defaultProvider = environment.IsDevelopment() ? "sqlite" : "postgres";
+        var databaseProvider = string.IsNullOrWhiteSpace(configuredProvider) ? defaultProvider : configuredProvider;
+
         services.AddInfra(
-            environment.IsDevelopment(),
-            configuration.GetConnectionString("DinExSqlite"));
+            databaseProvider,
+            configuration.GetConnectionString("DinExSqlite"),
+            configuration.GetConnectionString("DinExPostgres"));
 
         return services;
     }

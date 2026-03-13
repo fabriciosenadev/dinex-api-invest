@@ -3,15 +3,26 @@ namespace DinExApi.Infra;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfra(this IServiceCollection services, bool useSqliteInDevelopment, string? connectionString)
+    public static IServiceCollection AddInfra(this IServiceCollection services, string databaseProvider, string? sqliteConnectionString, string? postgresConnectionString)
     {
-        if (useSqliteInDevelopment)
+        var provider = (databaseProvider ?? string.Empty).Trim().ToLowerInvariant();
+        if (provider is "sqlite" or "postgres")
         {
-            var sqliteConnection = string.IsNullOrWhiteSpace(connectionString)
-                ? "Data Source=dinex.dev.db"
-                : connectionString;
+            if (provider == "sqlite")
+            {
+                var sqliteConnection = string.IsNullOrWhiteSpace(sqliteConnectionString)
+                    ? "Data Source=dinex.dev.db"
+                    : sqliteConnectionString;
+                services.AddDbContext<DinExDbContext>(options => options.UseSqlite(sqliteConnection));
+            }
+            else
+            {
+                var postgresConnection = string.IsNullOrWhiteSpace(postgresConnectionString)
+                    ? throw new InvalidOperationException("ConnectionStrings:DinExPostgres is required when Database:Provider is postgres.")
+                    : postgresConnectionString;
+                services.AddDbContext<DinExDbContext>(options => options.UseNpgsql(postgresConnection));
+            }
 
-            services.AddDbContext<DinExDbContext>(options => options.UseSqlite(sqliteConnection));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IAssetDefinitionRepository, SqliteAssetDefinitionRepository>();
             services.AddScoped<IInvestmentOperationRepository, SqliteInvestmentOperationRepository>();
@@ -31,22 +42,6 @@ public static class DependencyInjection
             return services;
         }
 
-        services.AddSingleton<InMemoryDataStore>();
-        services.AddScoped<IAssetDefinitionRepository, InMemoryAssetDefinitionRepository>();
-        services.AddScoped<IInvestmentOperationRepository, InMemoryInvestmentOperationRepository>();
-        services.AddScoped<ILedgerEntryRepository, InMemoryLedgerEntryRepository>();
-        services.AddScoped<ICorporateEventRepository, InMemoryCorporateEventRepository>();
-        services.AddScoped<ICorporateEventProcessor, InMemoryCorporateEventProcessor>();
-        services.AddScoped<IInvestmentPortfolioRebuilder, InvestmentPortfolioRebuilder>();
-        services.AddScoped<IUserRepository, InMemoryUserRepository>();
-        services.AddScoped<IUserActivationEmailSender, UserActivationEmailSender>();
-        services.AddScoped<IUserPasswordResetEmailSender, UserPasswordResetEmailSender>();
-        services.AddScoped<IUserPasswordHasher, Argon2IdUserPasswordHasher>();
-        services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
-        services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-        services.AddScoped<IInvestmentSpreadsheetParser, B3InvestmentSpreadsheetParser>();
-        services.AddScoped<IPortfolioPositionSpreadsheetParser, B3PortfolioPositionSpreadsheetParser>();
-        services.AddScoped<IUnitOfWork, InMemoryUnitOfWork>();
-        return services;
+        throw new InvalidOperationException("Database:Provider must be sqlite or postgres.");
     }
 }

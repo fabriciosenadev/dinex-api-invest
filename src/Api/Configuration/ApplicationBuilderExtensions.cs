@@ -1,13 +1,13 @@
-
 namespace DinExApi.Api.Configuration;
 
 public static class ApplicationBuilderExtensions
 {
     public static WebApplication ConfigureApiPipeline(this WebApplication app)
     {
+        app.EnsureDatabaseMigrated();
+
         if (app.Environment.IsDevelopment())
         {
-            app.EnsureDevelopmentDatabase();
             app.UseSwagger();
             app.UseSwaggerUI();
         }
@@ -19,7 +19,7 @@ public static class ApplicationBuilderExtensions
         return app;
     }
 
-    private static void EnsureDevelopmentDatabase(this WebApplication app)
+    private static void EnsureDatabaseMigrated(this WebApplication app)
     {
         using var scope = app.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<DinExDbContext>();
