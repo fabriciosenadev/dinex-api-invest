@@ -25,6 +25,8 @@ src/Tests/TestResultsCoverage/
 Thumbs.db
 
 # Local tools and secrets
+.dotnet/
+.nuget/
 src/Api/bin/
 src/Api/obj/
 src/Api/dinex.dev.db
