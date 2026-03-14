@@ -13,14 +13,28 @@ public static class DependencyInjection
                 var sqliteConnection = string.IsNullOrWhiteSpace(sqliteConnectionString)
                     ? "Data Source=dinex.dev.db"
                     : sqliteConnectionString;
-                services.AddDbContext<DinExDbContext>(options => options.UseSqlite(sqliteConnection));
+                services.AddDbContext<DinExDbContext>(options =>
+                {
+                    options.ConfigureWarnings(warnings =>
+                    {
+                        warnings.Ignore(RelationalEventId.PendingModelChangesWarning);
+                    });
+                    options.UseSqlite(sqliteConnection);
+                });
             }
             else
             {
                 var postgresConnection = string.IsNullOrWhiteSpace(postgresConnectionString)
                     ? throw new InvalidOperationException("ConnectionStrings:DinExPostgres is required when Database:Provider is postgres.")
                     : postgresConnectionString;
-                services.AddDbContext<DinExDbContext>(options => options.UseNpgsql(postgresConnection));
+                services.AddDbContext<DinExDbContext>(options =>
+                {
+                    options.ConfigureWarnings(warnings =>
+                    {
+                        warnings.Ignore(RelationalEventId.PendingModelChangesWarning);
+                    });
+                    options.UseNpgsql(postgresConnection);
+                });
             }
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
