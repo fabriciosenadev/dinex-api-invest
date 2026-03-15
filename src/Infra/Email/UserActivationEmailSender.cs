@@ -24,7 +24,7 @@ internal sealed class UserActivationEmailSender(IOptions<AppSettings> options) :
         using var message = new MailMessage
         {
             From = new MailAddress(settings.MailboxAddress, settings.MailboxName),
-            Subject = "Codigo de ativacao da conta DinEx",
+            Subject = "Codigo de ativacao da conta Dinheiro Exato",
             Body = body,
             IsBodyHtml = true
         };
@@ -59,3 +59,4 @@ internal sealed class UserActivationEmailSender(IOptions<AppSettings> options) :
             .Replace("{{activation_code}}", activationCode, StringComparison.Ordinal);
     }
 }
+

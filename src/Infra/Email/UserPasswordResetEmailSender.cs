@@ -24,7 +24,7 @@ internal sealed class UserPasswordResetEmailSender(IOptions<AppSettings> options
         using var message = new MailMessage
         {
             From = new MailAddress(settings.MailboxAddress, settings.MailboxName),
-            Subject = "Codigo para redefinir sua senha - DinEx",
+            Subject = "Codigo para redefinir sua senha - Dinheiro Exato",
             Body = body,
             IsBodyHtml = true
         };
@@ -59,3 +59,4 @@ internal sealed class UserPasswordResetEmailSender(IOptions<AppSettings> options
             .Replace("{{password_reset_code}}", passwordResetCode, StringComparison.Ordinal);
     }
 }
+
