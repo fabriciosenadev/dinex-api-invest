@@ -99,7 +99,20 @@ public sealed class MovementsController(IApplicationDispatcher dispatcher) : Mai
                                 asset.TotalCost,
                                 asset.Currency))
                             .ToArray()))
-                    .ToArray()))
+                    .ToArray(),
+                new IncomeTaxRealizedSummaryResponse(
+                    year.Realized.TotalProfit,
+                    year.Realized.TotalLoss,
+                    year.Realized.NetResult,
+                    year.Realized.Assets
+                        .Select(asset => new IncomeTaxRealizedAssetSummaryResponse(
+                            asset.AssetSymbol,
+                            asset.SoldQuantity,
+                            asset.GrossProceeds,
+                            asset.CostBasis,
+                            asset.RealizedResult,
+                            asset.Currency))
+                        .ToArray())))
             .ToArray());
 
         return HandleResult(mapped);

@@ -15,6 +15,21 @@ public sealed record IncomeTaxCompanySummaryResponse(
     string Currency,
     IReadOnlyCollection<IncomeTaxAssetSummaryResponse> Assets);
 
+public sealed record IncomeTaxRealizedAssetSummaryResponse(
+    string AssetSymbol,
+    decimal SoldQuantity,
+    decimal GrossProceeds,
+    decimal CostBasis,
+    decimal RealizedResult,
+    string Currency);
+
+public sealed record IncomeTaxRealizedSummaryResponse(
+    decimal TotalProfit,
+    decimal TotalLoss,
+    decimal NetResult,
+    IReadOnlyCollection<IncomeTaxRealizedAssetSummaryResponse> Assets);
+
 public sealed record IncomeTaxYearSummaryResponse(
     int Year,
-    IReadOnlyCollection<IncomeTaxCompanySummaryResponse> Companies);
+    IReadOnlyCollection<IncomeTaxCompanySummaryResponse> Companies,
+    IncomeTaxRealizedSummaryResponse Realized);
