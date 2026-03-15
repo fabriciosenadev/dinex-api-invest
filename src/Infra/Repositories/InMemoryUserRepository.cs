@@ -19,4 +19,10 @@ internal sealed class InMemoryUserRepository(InMemoryDataStore dataStore) : IUse
 
     public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         => Task.FromResult(dataStore.FindUserById(id));
+
+    public Task<bool> ExistsByRoleAsync(UserRole userRole, CancellationToken cancellationToken = default)
+        => Task.FromResult(dataStore.ExistsUserByRole(userRole));
+
+    public Task<IReadOnlyCollection<User>> ListAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(dataStore.SnapshotUsers());
 }

@@ -32,6 +32,21 @@ internal sealed class SqliteUserRepository(IRepository<UserRecord> repository) :
         return record?.ToEntity();
     }
 
+    public async Task<bool> ExistsByRoleAsync(UserRole userRole, CancellationToken cancellationToken = default)
+    {
+        return await repository.Query()
+            .AnyAsync(x => x.UserRole == (int)userRole, cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<User>> ListAsync(CancellationToken cancellationToken = default)
+    {
+        var records = await repository.Query()
+            .OrderBy(x => x.FullName)
+            .ToListAsync(cancellationToken);
+
+        return records.Select(x => x.ToEntity()).ToArray();
+    }
+
     public async Task UpdateAsync(User user, CancellationToken cancellationToken = default)
     {
         var trackedRecord = await repository.Query(asNoTracking: false)

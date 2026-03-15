@@ -7,6 +7,7 @@ global using System.Text;
 global using System.Threading;
 global using System.Threading.Tasks;
 global using DinExApi.Api.Configuration;
+global using DinExApi.Api.Contracts.Admin.Users;
 global using DinExApi.Api.Contracts.Assets;
 global using DinExApi.Api.Contracts.Common;
 global using DinExApi.Api.Contracts.CorporateEvents;

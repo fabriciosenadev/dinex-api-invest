@@ -24,6 +24,7 @@ public sealed class GetCurrentUserQueryHandler(IUserRepository userRepository)
                 user.FullName,
                 user.Email,
                 user.UserStatus,
+                user.UserRole,
                 user.CreatedAt,
                 user.UpdatedAt));
             return result;

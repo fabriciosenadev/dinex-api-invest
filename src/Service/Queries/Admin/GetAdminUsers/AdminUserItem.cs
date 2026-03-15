@@ -1,6 +1,6 @@
 namespace DinExApi.Service;
 
-public sealed record CurrentUserItem(
+public sealed record AdminUserItem(
     Guid UserId,
     string FullName,
     string Email,

@@ -6,6 +6,7 @@ public sealed class User : Entity
     public string Email { get; private set; }
     public string Password { get; private set; }
     public UserStatus UserStatus { get; private set; }
+    public UserRole UserRole { get; private set; }
     public string? ActivationCode { get; private set; }
     public DateTime? ActivationCodeExpiresAtUtc { get; private set; }
     public int ActivationCodeFailedAttempts { get; private set; }
@@ -33,13 +34,15 @@ public sealed class User : Entity
         DateTime createdAt,
         DateTime? updatedAt,
         DateTime? deletedAt,
-        Guid? id = null)
+        Guid? id = null,
+        UserRole userRole = UserRole.User)
     {
         Id = id ?? Guid.NewGuid();
         FullName = fullName.Trim();
         Email = email.Trim().ToLowerInvariant();
         Password = password;
         UserStatus = userStatus;
+        UserRole = userRole;
         ActivationCode = activationCode;
         ActivationCodeExpiresAtUtc = activationCodeExpiresAtUtc;
         ActivationCodeFailedAttempts = activationCodeFailedAttempts;
@@ -72,7 +75,8 @@ public sealed class User : Entity
             loginLockedUntilUtc: null,
             createdAt: DateTime.UtcNow,
             updatedAt: null,
-            deletedAt: null);
+            deletedAt: null,
+            userRole: UserRole.User);
 
         newUser.AddNotifications(
             new Contract<Notification>()
@@ -100,6 +104,45 @@ public sealed class User : Entity
         return newUser;
     }
 
+    public static User CreateInvitedUser(string fullName, string email, UserRole userRole)
+    {
+        var invitedUser = new User(
+            fullName: fullName,
+            email: email.Trim().ToLowerInvariant(),
+            password: string.Empty,
+            userStatus: UserStatus.Inactive,
+            activationCode: null,
+            activationCodeExpiresAtUtc: null,
+            activationCodeFailedAttempts: 0,
+            passwordResetCode: null,
+            passwordResetCodeExpiresAtUtc: null,
+            refreshTokenHash: null,
+            refreshTokenExpiresAtUtc: null,
+            loginFailedAttempts: 0,
+            loginLockedUntilUtc: null,
+            createdAt: DateTime.UtcNow,
+            updatedAt: null,
+            deletedAt: null,
+            userRole: userRole);
+
+        invitedUser.AddNotifications(
+            new Contract<Notification>()
+                .Requires()
+                .IsNotNullOrEmpty(invitedUser.FullName, "User.FullName", "Provide the full name")
+                .IsGreaterOrEqualsThan(invitedUser.FullName?.Length ?? 0, 3, "User.FullName", "Provide the full name")
+                .IsNotNullOrEmpty(invitedUser.Email, "User.Email", "Provide a valid email")
+                .IsEmail(invitedUser.Email, "User.Email", "Provide a valid email"));
+
+        return invitedUser;
+    }
+
+    public static User CreateAdmin(string fullName, string email)
+    {
+        var adminUser = CreateInvitedUser(fullName, email, UserRole.Admin);
+        adminUser.UserStatus = UserStatus.Active;
+        return adminUser;
+    }
+
     public void SetPasswordHash(string passwordHash)
     {
         if (string.IsNullOrWhiteSpace(passwordHash))
@@ -109,6 +152,19 @@ public sealed class User : Entity
         }
 
         Password = passwordHash;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void PromoteToAdmin(bool activateUser)
+    {
+        UserRole = UserRole.Admin;
+
+        if (activateUser && UserStatus != UserStatus.Active)
+        {
+            Activate();
+            return;
+        }
+
         UpdatedAt = DateTime.UtcNow;
     }
 

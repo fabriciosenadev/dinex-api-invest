@@ -1,4 +1,3 @@
-
 namespace DinExApi.Infra;
 
 public sealed class InMemoryDataStore
@@ -259,6 +258,22 @@ public sealed class InMemoryDataStore
         lock (_lock)
         {
             return _users.FirstOrDefault(x => string.Equals(x.RefreshTokenHash, refreshTokenHash, StringComparison.Ordinal));
+        }
+    }
+
+    public bool ExistsUserByRole(UserRole userRole)
+    {
+        lock (_lock)
+        {
+            return _users.Any(x => x.UserRole == userRole);
+        }
+    }
+
+    public IReadOnlyCollection<User> SnapshotUsers()
+    {
+        lock (_lock)
+        {
+            return _users.OrderBy(x => x.FullName).ToArray();
         }
     }
 }

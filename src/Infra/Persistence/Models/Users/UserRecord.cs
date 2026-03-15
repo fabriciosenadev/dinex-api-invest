@@ -7,6 +7,7 @@ public sealed class UserRecord
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public int UserStatus { get; set; }
+    public int UserRole { get; set; }
     public string? ActivationCode { get; set; }
     public DateTime? ActivationCodeExpiresAtUtc { get; set; }
     public int ActivationCodeFailedAttempts { get; set; }

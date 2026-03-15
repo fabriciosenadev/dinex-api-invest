@@ -5,6 +5,7 @@ public static class ApplicationBuilderExtensions
     public static WebApplication ConfigureApiPipeline(this WebApplication app)
     {
         app.EnsureDatabaseMigrated();
+        app.EnsureBootstrapAdmin();
 
         app.UseSerilogRequestLogging(options =>
         {
@@ -67,6 +68,22 @@ public static class ApplicationBuilderExtensions
         catch (Exception exception)
         {
             app.Logger.LogCritical(exception, "Failed to apply database migrations on startup.");
+            throw;
+        }
+    }
+
+    private static void EnsureBootstrapAdmin(this WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var bootstrapService = scope.ServiceProvider.GetRequiredService<IAdminBootstrapService>();
+
+        try
+        {
+            bootstrapService.EnsureAdminExistsAsync().GetAwaiter().GetResult();
+        }
+        catch (Exception exception)
+        {
+            app.Logger.LogCritical(exception, "Failed to ensure bootstrap admin user.");
             throw;
         }
     }

@@ -8,6 +8,7 @@ public static class ServiceCollectionExtensions
         IHostEnvironment environment)
     {
         services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
+        services.Configure<BootstrapAdminSettings>(configuration.GetSection("BootstrapAdmin"));
         services.AddControllers();
 
         var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>() ?? new AppSettings();

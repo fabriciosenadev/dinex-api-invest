@@ -10,6 +10,7 @@ internal sealed class UserRecordConfiguration : IEntityTypeConfiguration<UserRec
         builder.Property(x => x.FullName).HasMaxLength(120).IsRequired();
         builder.Property(x => x.Email).HasMaxLength(180).IsRequired();
         builder.Property(x => x.Password).HasMaxLength(300).IsRequired();
+        builder.Property(x => x.UserRole).HasDefaultValue((int)UserRole.User);
         builder.Property(x => x.ActivationCode).HasMaxLength(30);
         builder.Property(x => x.ActivationCodeFailedAttempts).HasDefaultValue(0);
         builder.Property(x => x.PasswordResetCode).HasMaxLength(30);

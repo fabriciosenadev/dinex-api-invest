@@ -1,6 +1,6 @@
-namespace DinExApi.Api.Contracts.Users;
+namespace DinExApi.Api.Contracts.Admin.Users;
 
-public sealed record CurrentUserResponse(
+public sealed record AdminUserResponse(
     Guid UserId,
     string FullName,
     string Email,

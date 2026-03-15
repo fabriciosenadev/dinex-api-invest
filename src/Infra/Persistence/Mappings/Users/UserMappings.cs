@@ -11,6 +11,7 @@ internal static class UserMappings
             Email = entity.Email,
             Password = entity.Password,
             UserStatus = (int)entity.UserStatus,
+            UserRole = (int)entity.UserRole,
             ActivationCode = entity.ActivationCode,
             ActivationCodeExpiresAtUtc = entity.ActivationCodeExpiresAtUtc,
             ActivationCodeFailedAttempts = entity.ActivationCodeFailedAttempts,
@@ -45,7 +46,8 @@ internal static class UserMappings
             createdAt: record.CreatedAt,
             updatedAt: record.UpdatedAt,
             deletedAt: record.DeletedAt,
-            id: record.Id);
+            id: record.Id,
+            userRole: (UserRole)record.UserRole);
     }
 
     public static void UpdateFromEntity(this UserRecord record, User entity)
@@ -54,6 +56,7 @@ internal static class UserMappings
         record.Email = entity.Email;
         record.Password = entity.Password;
         record.UserStatus = (int)entity.UserStatus;
+        record.UserRole = (int)entity.UserRole;
         record.ActivationCode = entity.ActivationCode;
         record.ActivationCodeExpiresAtUtc = entity.ActivationCodeExpiresAtUtc;
         record.ActivationCodeFailedAttempts = entity.ActivationCodeFailedAttempts;

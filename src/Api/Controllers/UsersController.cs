@@ -32,6 +32,7 @@ public sealed class UsersController(IApplicationDispatcher dispatcher) : MainCon
             result.Data.FullName,
             result.Data.Email,
             result.Data.UserStatus.ToString(),
+            result.Data.UserRole.ToString(),
             result.Data.CreatedAtUtc,
             result.Data.UpdatedAtUtc));
 
@@ -55,6 +56,26 @@ public sealed class UsersController(IApplicationDispatcher dispatcher) : MainCon
             request.ConfirmPassword);
 
         var result = await dispatcher.SendAsync<RegisterUserCommand, OperationResult<Guid>>(command, cancellationToken);
+        return HandleResult(result);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("complete-invitation")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> CompleteInvitation(
+        [FromBody] CompleteInvitationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new CompleteInvitationCommand(
+            request.Email,
+            request.ActivationCode,
+            request.Password,
+            request.ConfirmPassword);
+
+        var result = await dispatcher.SendAsync<CompleteInvitationCommand, OperationResult>(command, cancellationToken);
         return HandleResult(result);
     }
 

@@ -23,6 +23,7 @@ internal sealed class JwtAccessTokenService(IOptions<AppSettings> options) : IAc
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(ClaimTypes.Name, user.FullName),
+            new(ClaimTypes.Role, user.UserRole.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N"))
         };
 
