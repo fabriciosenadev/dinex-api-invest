@@ -1,4 +1,3 @@
-
 namespace DinExApi.Api.Controllers;
 
 [Route("api/[controller]")]
@@ -112,7 +111,35 @@ public sealed class MovementsController(IApplicationDispatcher dispatcher) : Mai
                             asset.CostBasis,
                             asset.RealizedResult,
                             asset.Currency))
-                        .ToArray())))
+                        .ToArray()),
+                year.MonthlyTaxation
+                    .Select(month => new IncomeTaxMonthlySummaryResponse(
+                        month.Year,
+                        month.Month,
+                        month.TotalTax,
+                        month.TotalIrrfMonth,
+                        month.TotalIrrfCompensated,
+                        month.DarfDue,
+                        month.Buckets
+                            .Select(bucket => new IncomeTaxMonthlyBucketSummaryResponse(
+                                bucket.AssetClass,
+                                bucket.TradeMode,
+                                bucket.GrossResult,
+                                bucket.LossCompensated,
+                                bucket.TaxableBase,
+                                bucket.TaxRate,
+                                bucket.TaxDue,
+                                bucket.IrrfMonth,
+                                bucket.IrrfCompensated,
+                                bucket.DarfGenerated))
+                            .ToArray(),
+                        month.EndingLossCarryByBucket
+                            .Select(carry => new IncomeTaxMonthlyBucketCarryResponse(
+                                carry.AssetClass,
+                                carry.TradeMode,
+                                carry.LossCarry))
+                            .ToArray()))
+                    .ToArray()))
             .ToArray());
 
         return HandleResult(mapped);

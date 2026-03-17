@@ -29,7 +29,35 @@ public sealed record IncomeTaxRealizedSummaryItem(
     decimal NetResult,
     IReadOnlyCollection<IncomeTaxRealizedAssetSummaryItem> Assets);
 
+public sealed record IncomeTaxMonthlyBucketCarryItem(
+    string AssetClass,
+    string TradeMode,
+    decimal LossCarry);
+
+public sealed record IncomeTaxMonthlyBucketSummaryItem(
+    string AssetClass,
+    string TradeMode,
+    decimal GrossResult,
+    decimal LossCompensated,
+    decimal TaxableBase,
+    decimal TaxRate,
+    decimal TaxDue,
+    decimal IrrfMonth,
+    decimal IrrfCompensated,
+    decimal DarfGenerated);
+
+public sealed record IncomeTaxMonthlySummaryItem(
+    int Year,
+    int Month,
+    decimal TotalTax,
+    decimal TotalIrrfMonth,
+    decimal TotalIrrfCompensated,
+    decimal DarfDue,
+    IReadOnlyCollection<IncomeTaxMonthlyBucketSummaryItem> Buckets,
+    IReadOnlyCollection<IncomeTaxMonthlyBucketCarryItem> EndingLossCarryByBucket);
+
 public sealed record IncomeTaxYearSummaryItem(
     int Year,
     IReadOnlyCollection<IncomeTaxCompanySummaryItem> Companies,
-    IncomeTaxRealizedSummaryItem Realized);
+    IncomeTaxRealizedSummaryItem Realized,
+    IReadOnlyCollection<IncomeTaxMonthlySummaryItem> MonthlyTaxation);
