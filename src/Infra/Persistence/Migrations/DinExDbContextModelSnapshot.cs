@@ -77,6 +77,10 @@ namespace DinExApi.Infra.Persistence.Migrations
                         .HasPrecision(18, 6)
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal?>("CashPerSourceUnit")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
@@ -319,4 +323,6 @@ namespace DinExApi.Infra.Persistence.Migrations
         }
     }
 }
+
+
 

@@ -22,6 +22,7 @@ public sealed class GetCorporateEventsQueryHandler(ICorporateEventRepository cor
                 x.SourceAssetSymbol,
                 x.TargetAssetSymbol,
                 x.Factor,
+                x.CashPerSourceUnit,
                 x.EffectiveAtUtc,
                 x.Notes,
                 x.AppliedAtUtc))

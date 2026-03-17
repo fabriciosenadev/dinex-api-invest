@@ -18,6 +18,7 @@ public sealed class RegisterCorporateEventCommandHandler(
             sourceAssetSymbol: command.SourceAssetSymbol,
             targetAssetSymbol: command.TargetAssetSymbol,
             factor: command.Factor,
+            cashPerSourceUnit: command.CashPerSourceUnit,
             effectiveAtUtc: command.EffectiveAtUtc,
             notes: command.Notes);
 

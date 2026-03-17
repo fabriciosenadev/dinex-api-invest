@@ -25,6 +25,7 @@ public sealed class UpdateCorporateEventCommandHandler(
             sourceAssetSymbol: command.SourceAssetSymbol,
             targetAssetSymbol: command.TargetAssetSymbol,
             factor: command.Factor,
+            cashPerSourceUnit: command.CashPerSourceUnit,
             effectiveAtUtc: command.EffectiveAtUtc,
             notes: command.Notes,
             createdAt: existing.CreatedAt,

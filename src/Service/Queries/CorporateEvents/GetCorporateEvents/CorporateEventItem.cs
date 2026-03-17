@@ -6,6 +6,7 @@ public sealed record CorporateEventItem(
     string SourceAssetSymbol,
     string? TargetAssetSymbol,
     decimal Factor,
+    decimal? CashPerSourceUnit,
     DateTime EffectiveAtUtc,
     string? Notes,
     DateTime AppliedAtUtc);

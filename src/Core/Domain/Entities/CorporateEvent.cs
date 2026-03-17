@@ -7,6 +7,7 @@ public sealed class CorporateEvent : Entity
     public string SourceAssetSymbol { get; private set; }
     public string? TargetAssetSymbol { get; private set; }
     public decimal Factor { get; private set; }
+    public decimal? CashPerSourceUnit { get; private set; }
     public DateTime EffectiveAtUtc { get; private set; }
     public string? Notes { get; private set; }
     public DateTime AppliedAtUtc { get; private set; }
@@ -17,6 +18,7 @@ public sealed class CorporateEvent : Entity
         string sourceAssetSymbol,
         string? targetAssetSymbol,
         decimal factor,
+        decimal? cashPerSourceUnit,
         DateTime effectiveAtUtc,
         string? notes,
         DateTime? createdAt = null,
@@ -29,6 +31,7 @@ public sealed class CorporateEvent : Entity
         SourceAssetSymbol = sourceAssetSymbol.Trim().ToUpperInvariant();
         TargetAssetSymbol = string.IsNullOrWhiteSpace(targetAssetSymbol) ? null : targetAssetSymbol.Trim().ToUpperInvariant();
         Factor = factor;
+        CashPerSourceUnit = cashPerSourceUnit;
         EffectiveAtUtc = effectiveAtUtc;
         Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
         CreatedAt = createdAt ?? DateTime.UtcNow;
@@ -64,9 +67,14 @@ public sealed class CorporateEvent : Entity
             AddNotification("CorporateEvent.Notes", "Notes must have up to 500 characters.");
         }
 
-        if (Type == CorporateEventType.TickerChange && string.IsNullOrWhiteSpace(TargetAssetSymbol))
+        if ((Type == CorporateEventType.TickerChange || Type == CorporateEventType.IncorporationWithCash) && string.IsNullOrWhiteSpace(TargetAssetSymbol))
         {
-            AddNotification("CorporateEvent.TargetAssetSymbol", "Target asset symbol is required for ticker change.");
+            AddNotification("CorporateEvent.TargetAssetSymbol", "Target asset symbol is required for this event type.");
+        }
+
+        if (CashPerSourceUnit is < 0)
+        {
+            AddNotification("CorporateEvent.CashPerSourceUnit", "Cash per source unit cannot be negative.");
         }
     }
 }

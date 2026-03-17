@@ -30,6 +30,7 @@ public sealed class CorporateEventsController(IApplicationDispatcher dispatcher)
             SourceAssetSymbol: request.SourceAssetSymbol,
             TargetAssetSymbol: request.TargetAssetSymbol,
             Factor: request.Factor,
+            CashPerSourceUnit: request.CashPerSourceUnit,
             EffectiveAtUtc: request.EffectiveAtUtc,
             Notes: request.Notes);
 
@@ -76,6 +77,7 @@ public sealed class CorporateEventsController(IApplicationDispatcher dispatcher)
             SourceAssetSymbol: request.SourceAssetSymbol,
             TargetAssetSymbol: request.TargetAssetSymbol,
             Factor: request.Factor,
+            CashPerSourceUnit: request.CashPerSourceUnit,
             EffectiveAtUtc: request.EffectiveAtUtc,
             Notes: request.Notes);
 
@@ -176,6 +178,7 @@ public sealed class CorporateEventsController(IApplicationDispatcher dispatcher)
                 x.SourceAssetSymbol,
                 x.TargetAssetSymbol,
                 x.Factor,
+                x.CashPerSourceUnit,
                 x.EffectiveAtUtc,
                 x.Notes,
                 x.AppliedAtUtc))

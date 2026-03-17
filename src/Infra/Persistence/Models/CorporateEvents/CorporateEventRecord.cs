@@ -8,6 +8,7 @@ public sealed class CorporateEventRecord
     public string SourceAssetSymbol { get; set; } = string.Empty;
     public string? TargetAssetSymbol { get; set; }
     public decimal Factor { get; set; }
+    public decimal? CashPerSourceUnit { get; set; }
     public DateTime EffectiveAtUtc { get; set; }
     public string? Notes { get; set; }
     public DateTime AppliedAtUtc { get; set; }

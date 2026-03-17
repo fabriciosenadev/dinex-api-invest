@@ -7,5 +7,6 @@ public sealed record UpdateCorporateEventCommand(
     string SourceAssetSymbol,
     string? TargetAssetSymbol,
     decimal Factor,
+    decimal? CashPerSourceUnit,
     DateTime EffectiveAtUtc,
     string? Notes) : ICommand<OperationResult<RegisterCorporateEventResult>>;

@@ -47,6 +47,14 @@ internal sealed class SqliteCorporateEventProcessor(IRepository<InvestmentOperat
                     quantity = Math.Round(operation.Quantity / corporateEvent.Factor, 6, MidpointRounding.AwayFromZero);
                     unitPriceAmount = Math.Round(operation.UnitPriceAmount * corporateEvent.Factor, 6, MidpointRounding.AwayFromZero);
                     break;
+                case CorporateEventType.IncorporationWithCash:
+                    if (!string.IsNullOrWhiteSpace(targetAsset))
+                    {
+                        assetSymbol = targetAsset;
+                    }
+                    quantity = Math.Round(operation.Quantity * corporateEvent.Factor, 6, MidpointRounding.AwayFromZero);
+                    unitPriceAmount = Math.Round(operation.UnitPriceAmount / corporateEvent.Factor, 6, MidpointRounding.AwayFromZero);
+                    break;
             }
 
             adjustedOperations.Add(new InvestmentOperationRecord

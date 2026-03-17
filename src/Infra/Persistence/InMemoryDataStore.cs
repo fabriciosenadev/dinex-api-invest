@@ -169,14 +169,14 @@ public sealed class InMemoryDataStore
 
     private static InvestmentOperation BuildAdjustedOperation(InvestmentOperation operation, CorporateEvent corporateEvent)
     {
-        var assetSymbol = corporateEvent.Type == CorporateEventType.TickerChange
+        var assetSymbol = corporateEvent.Type == CorporateEventType.TickerChange || corporateEvent.Type == CorporateEventType.IncorporationWithCash
             ? (corporateEvent.TargetAssetSymbol ?? operation.AssetSymbol)
             : operation.AssetSymbol;
 
         var quantity = operation.Quantity;
         var unitPrice = operation.UnitPrice.Amount;
 
-        if (corporateEvent.Type == CorporateEventType.TickerChange)
+        if (corporateEvent.Type == CorporateEventType.TickerChange || corporateEvent.Type == CorporateEventType.IncorporationWithCash)
         {
             quantity = Math.Round(quantity * corporateEvent.Factor, 6, MidpointRounding.AwayFromZero);
             unitPrice = Math.Round(
@@ -277,3 +277,4 @@ public sealed class InMemoryDataStore
         }
     }
 }
+
