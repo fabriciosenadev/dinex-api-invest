@@ -89,10 +89,21 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
                 {
                     var inferredType = InferAssetTypeFromSymbol(statementAssetSymbol);
                     var inferredAsset = AssetDefinition.Create(
-                        command.UserId,
-                        statementAssetSymbol,
-                        inferredType,
-                        "Criado automaticamente na importação da planilha.");
+                        userId: command.UserId,
+                        symbol: statementAssetSymbol,
+                        type: inferredType,
+                        name: null,
+                        document: null,
+                        country: null,
+                        currency: null,
+                        sector: null,
+                        segment: null,
+                        shareClass: null,
+                        cvmCode: null,
+                        fiiCategory: null,
+                        administrator: null,
+                        manager: null,
+                        notes: "Criado automaticamente na importação da planilha.");
 
                     if (inferredAsset.IsValid)
                     {
@@ -377,3 +388,5 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandler(
             => new(false, null, null, message);
     }
 }
+
+

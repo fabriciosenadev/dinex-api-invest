@@ -387,7 +387,7 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         var movementRepository = new FakeInvestmentOperationRepository();
         var ledgerRepository = new FakeLedgerRepository();
         var assetDefinitionRepository = new FakeAssetDefinitionRepository();
-        await assetDefinitionRepository.AddAsync(AssetDefinition.Create(userId, "GOLD11", AssetType.Fii, "manual"));
+        await assetDefinitionRepository.AddAsync(AssetDefinition.Create(userId: userId, symbol: "GOLD11", type: AssetType.Fii, name: null, document: null, country: null, currency: null, sector: null, segment: null, shareClass: null, cvmCode: null, fiiCategory: null, administrator: null, manager: null, notes: "manual"));
         var unitOfWork = new SpyUnitOfWork();
         var handler = new ImportInvestmentsSpreadsheetCommandHandler(
             parser,
@@ -520,4 +520,5 @@ public sealed class ImportInvestmentsSpreadsheetCommandHandlerTests
         }
     }
 }
+
 

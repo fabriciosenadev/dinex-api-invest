@@ -25,7 +25,21 @@ public sealed class UpdateAssetDefinitionCommandHandler(
             return result;
         }
 
-        existing.Update(command.Symbol, command.Type, command.Notes);
+        existing.Update(
+            command.Symbol,
+            command.Type,
+            command.Name,
+            command.Document,
+            command.Country,
+            command.Currency,
+            command.Sector,
+            command.Segment,
+            command.ShareClass,
+            command.CvmCode,
+            command.FiiCategory,
+            command.Administrator,
+            command.Manager,
+            command.Notes);
         if (!existing.IsValid)
         {
             result.AddErrors(existing.Notifications.Select(x => x.Message));

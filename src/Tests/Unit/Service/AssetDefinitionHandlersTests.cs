@@ -10,7 +10,22 @@ public sealed class AssetDefinitionHandlersTests
         var handler = new UpsertAssetDefinitionCommandHandler(repository, unitOfWork);
         var userId = Guid.NewGuid();
 
-        var result = await handler.HandleAsync(new UpsertAssetDefinitionCommand(userId, "GOLD11", AssetType.Etf, "ETF de ouro"));
+        var result = await handler.HandleAsync(new UpsertAssetDefinitionCommand(
+            userId,
+            "GOLD11",
+            AssetType.Etf,
+            "ETF de ouro",
+            null,
+            "Brasil",
+            "BRL",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "ETF de ouro"));
 
         Assert.True(result.Succeeded);
         Assert.NotEqual(Guid.Empty, result.Data);
@@ -18,6 +33,7 @@ public sealed class AssetDefinitionHandlersTests
         var created = await repository.GetBySymbolAsync(userId, "GOLD11");
         Assert.NotNull(created);
         Assert.Equal(AssetType.Etf, created!.Type);
+        Assert.Equal("ETF de ouro", created.Name);
     }
 
     [Fact]
@@ -26,11 +42,26 @@ public sealed class AssetDefinitionHandlersTests
         var repository = new FakeAssetDefinitionRepository();
         var unitOfWork = new SpyUnitOfWork();
         var userId = Guid.NewGuid();
-        var existing = AssetDefinition.Create(userId, "GOLD11", AssetType.Fii, null);
+        var existing = CreateAsset(userId, "GOLD11", AssetType.Fii, notes: null);
         await repository.AddAsync(existing);
         var handler = new UpsertAssetDefinitionCommandHandler(repository, unitOfWork);
 
-        var result = await handler.HandleAsync(new UpsertAssetDefinitionCommand(userId, "GOLD11", AssetType.Etf, "Corrigido"));
+        var result = await handler.HandleAsync(new UpsertAssetDefinitionCommand(
+            userId,
+            "GOLD11",
+            AssetType.Etf,
+            "Corrigido",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "Corrigido"));
 
         Assert.True(result.Succeeded);
         Assert.Equal(existing.Id, result.Data);
@@ -39,6 +70,7 @@ public sealed class AssetDefinitionHandlersTests
         Assert.NotNull(updated);
         Assert.Equal(AssetType.Etf, updated!.Type);
         Assert.Equal("Corrigido", updated.Notes);
+        Assert.Equal("Corrigido", updated.Name);
     }
 
     [Fact]
@@ -47,7 +79,7 @@ public sealed class AssetDefinitionHandlersTests
         var repository = new FakeAssetDefinitionRepository();
         var unitOfWork = new SpyUnitOfWork();
         var userId = Guid.NewGuid();
-        var asset = AssetDefinition.Create(userId, "GOLD11", AssetType.Fii, null);
+        var asset = CreateAsset(userId, "GOLD11", AssetType.Fii, notes: null);
         await repository.AddAsync(asset);
         var handler = new UpdateAssetDefinitionCommandHandler(repository, unitOfWork);
 
@@ -56,6 +88,17 @@ public sealed class AssetDefinitionHandlersTests
             asset.Id,
             "GOLD11",
             AssetType.Etf,
+            "Atualizado",
+            null,
+            "Brasil",
+            "BRL",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
             "Atualizado"));
 
         Assert.True(result.Succeeded);
@@ -64,6 +107,7 @@ public sealed class AssetDefinitionHandlersTests
         Assert.Equal("GOLD11", updated!.Symbol);
         Assert.Equal(AssetType.Etf, updated.Type);
         Assert.Equal("Atualizado", updated.Notes);
+        Assert.Equal("Brasil", updated.Country);
     }
 
     [Fact]
@@ -72,8 +116,8 @@ public sealed class AssetDefinitionHandlersTests
         var repository = new FakeAssetDefinitionRepository();
         var unitOfWork = new SpyUnitOfWork();
         var userId = Guid.NewGuid();
-        var first = AssetDefinition.Create(userId, "GOLD11", AssetType.Etf, null);
-        var second = AssetDefinition.Create(userId, "BOVA11", AssetType.Etf, null);
+        var first = CreateAsset(userId, "GOLD11", AssetType.Etf, notes: null);
+        var second = CreateAsset(userId, "BOVA11", AssetType.Etf, notes: null);
         await repository.AddAsync(first);
         await repository.AddAsync(second);
         var handler = new UpdateAssetDefinitionCommandHandler(repository, unitOfWork);
@@ -83,6 +127,17 @@ public sealed class AssetDefinitionHandlersTests
             second.Id,
             "GOLD11",
             AssetType.Etf,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
             null));
 
         Assert.False(result.Succeeded);
@@ -94,8 +149,8 @@ public sealed class AssetDefinitionHandlersTests
     {
         var repository = new FakeAssetDefinitionRepository();
         var userId = Guid.NewGuid();
-        await repository.AddAsync(AssetDefinition.Create(userId, "PETR4", AssetType.Stock, null));
-        await repository.AddAsync(AssetDefinition.Create(userId, "ALZR11", AssetType.Fii, null));
+        await repository.AddAsync(CreateAsset(userId, "PETR4", AssetType.Stock, notes: null));
+        await repository.AddAsync(CreateAsset(userId, "ALZR11", AssetType.Fii, notes: null));
         var handler = new GetAssetDefinitionsQueryHandler(repository);
 
         var result = await handler.HandleAsync(new GetAssetDefinitionsQuery(userId));
@@ -105,6 +160,26 @@ public sealed class AssetDefinitionHandlersTests
         Assert.Equal(2, result.Data!.Count);
         Assert.Equal("ALZR11", result.Data.First().Symbol);
         Assert.Equal("PETR4", result.Data.Last().Symbol);
+    }
+
+    private static AssetDefinition CreateAsset(Guid userId, string symbol, AssetType type, string? notes)
+    {
+        return AssetDefinition.Create(
+            userId: userId,
+            symbol: symbol,
+            type: type,
+            name: null,
+            document: null,
+            country: null,
+            currency: null,
+            sector: null,
+            segment: null,
+            shareClass: null,
+            cvmCode: null,
+            fiiCategory: null,
+            administrator: null,
+            manager: null,
+            notes: notes);
     }
 
     private sealed class FakeAssetDefinitionRepository : IAssetDefinitionRepository

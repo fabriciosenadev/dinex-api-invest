@@ -35,6 +35,17 @@ public sealed class AssetsController(IApplicationDispatcher dispatcher) : MainCo
                 x.Id,
                 x.Symbol,
                 x.Type.ToString(),
+                x.Name,
+                x.Document,
+                x.Country,
+                x.Currency,
+                x.Sector,
+                x.Segment,
+                x.ShareClass,
+                x.CvmCode,
+                x.FiiCategory,
+                x.Administrator,
+                x.Manager,
                 x.Notes,
                 x.CreatedAt,
                 x.UpdatedAt))
@@ -64,7 +75,22 @@ public sealed class AssetsController(IApplicationDispatcher dispatcher) : MainCo
             return BadRequest(new ErrorResponse(["Asset type is invalid."]));
         }
 
-        var command = new UpsertAssetDefinitionCommand(userId, request.Symbol, type, request.Notes);
+        var command = new UpsertAssetDefinitionCommand(
+            userId,
+            request.Symbol,
+            type,
+            request.Name,
+            request.Document,
+            request.Country,
+            request.Currency,
+            request.Sector,
+            request.Segment,
+            request.ShareClass,
+            request.CvmCode,
+            request.FiiCategory,
+            request.Administrator,
+            request.Manager,
+            request.Notes);
         var result = await dispatcher.SendAsync<UpsertAssetDefinitionCommand, OperationResult<Guid>>(command, cancellationToken);
         return HandleResult(result);
     }
@@ -91,7 +117,23 @@ public sealed class AssetsController(IApplicationDispatcher dispatcher) : MainCo
             return BadRequest(new ErrorResponse(["Asset type is invalid."]));
         }
 
-        var command = new UpdateAssetDefinitionCommand(userId, id, request.Symbol, type, request.Notes);
+        var command = new UpdateAssetDefinitionCommand(
+            userId,
+            id,
+            request.Symbol,
+            type,
+            request.Name,
+            request.Document,
+            request.Country,
+            request.Currency,
+            request.Sector,
+            request.Segment,
+            request.ShareClass,
+            request.CvmCode,
+            request.FiiCategory,
+            request.Administrator,
+            request.Manager,
+            request.Notes);
         var result = await dispatcher.SendAsync<UpdateAssetDefinitionCommand, OperationResult<Guid>>(command, cancellationToken);
         return HandleResult(result);
     }
